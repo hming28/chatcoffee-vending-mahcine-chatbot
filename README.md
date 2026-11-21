@@ -1,4 +1,4 @@
-# ☕ ChatCoffee: Malaysian Unmanned Smart Kiosk
+# ☕ ChatCoffee: Malaysian Vending Machine Smart Kiosk
 ### TAR UMT — BMDS2123 Natural Language Processing (Topic 4 Project)
 
 [![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-chatcoffee.onrender.com-00C781?style=for-the-badge&logo=render&logoColor=white)](https://chatcoffee.onrender.com/)
