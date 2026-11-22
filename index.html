@@ -705,60 +705,60 @@
     // 1. GROUNDED KNOWLEDGE BASE (unified_coffee_kb.csv — Kopitiam & Teh O Limau)
     // =========================================================================
     const KOPITIAM_KB = [
-      { id: 'KC001', name: 'Kopi O', base: 'Kopi', temp: 'Hot', sweet: 'Normal', milk: 'None', price: 3.20, cal: 88, sugar: 16, caf: 100 },
-      { id: 'KC002', name: 'Kopi', base: 'Kopi', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 3.70, cal: 131, sugar: 16, caf: 100 },
-      { id: 'KC003', name: 'Kopi C', base: 'Kopi', temp: 'Hot', sweet: 'Normal', milk: 'Evaporated Milk', price: 3.90, cal: 118, sugar: 16, caf: 100 },
-      { id: 'KC004', name: 'Kopi O Kosong', base: 'Kopi', temp: 'Hot', sweet: 'Zero Sugar', milk: 'None', price: 3.20, cal: 24, sugar: 0, caf: 100 },
-      { id: 'KC006', name: 'Kopi Siew Dai', base: 'Kopi', temp: 'Hot', sweet: 'Less Sugar', milk: 'Condensed Milk', price: 3.70, cal: 99, sugar: 8, caf: 100 },
-      { id: 'KC012', name: 'Kopi Peng', base: 'Kopi', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 4.50, cal: 131, sugar: 16, caf: 100 },
-      { id: 'KC013', name: 'Kopi O Peng', base: 'Kopi', temp: 'Iced', sweet: 'Normal', milk: 'None', price: 4.00, cal: 88, sugar: 16, caf: 100 },
-      { id: 'KC016', name: 'Kopi O Kosong Peng', base: 'Kopi', temp: 'Iced', sweet: 'Zero Sugar', milk: 'None', price: 4.00, cal: 24, sugar: 0, caf: 100 },
-      { id: 'KC023', name: 'Kopi C Siew Dai', base: 'Kopi', temp: 'Hot', sweet: 'Less Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 86, sugar: 8, caf: 100 },
-      { id: 'KC024', name: 'Kopi C Ga Dai', base: 'Kopi', temp: 'Hot', sweet: 'Extra Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 150, sugar: 24, caf: 100 },
-      { id: 'KC031', name: 'Kopi C Kosong', base: 'Kopi', temp: 'Hot', sweet: 'Zero Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 54, sugar: 0, caf: 100 },
-      { id: 'KC129', name: 'Kopi C Peng', base: 'Kopi', temp: 'Iced', sweet: 'Normal', milk: 'Evaporated Milk', price: 4.70, cal: 118, sugar: 16, caf: 100 },
-      { id: 'KC130', name: 'Kopi C Peng Siew Dai', base: 'Kopi', temp: 'Iced', sweet: 'Less Sugar', milk: 'Evaporated Milk', price: 4.70, cal: 86, sugar: 8, caf: 100 },
-      { id: 'KC131', name: 'Kopi C Peng Kosong', base: 'Kopi', temp: 'Iced', sweet: 'Zero Sugar', milk: 'Evaporated Milk', price: 4.70, cal: 54, sugar: 0, caf: 100 },
-      { id: 'KC045', name: 'Teh C Siew Dai', base: 'Teh', temp: 'Hot', sweet: 'Less Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 86, sugar: 8, caf: 50 },
-      { id: 'KC046', name: 'Teh C Ga Dai', base: 'Teh', temp: 'Hot', sweet: 'Extra Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 150, sugar: 24, caf: 50 },
-      { id: 'KC047', name: 'Teh C Kosong', base: 'Teh', temp: 'Hot', sweet: 'Zero Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 54, sugar: 0, caf: 50 },
-      { id: 'KC134', name: 'Teh C Peng Siew Dai', base: 'Teh', temp: 'Iced', sweet: 'Less Sugar', milk: 'Evaporated Milk', price: 4.70, cal: 86, sugar: 8, caf: 50 },
+      { id: 'KC001', name: 'Kopi O', base: 'Kopi', temp: 'Hot', sweet: 'Normal', milk: 'None', price: 3.20, cal: 88, sugar: 16, caf: 100, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC002', name: 'Kopi', base: 'Kopi', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 3.70, cal: 131, sugar: 16, caf: 100, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC003', name: 'Kopi C', base: 'Kopi', temp: 'Hot', sweet: 'Normal', milk: 'Evaporated Milk', price: 3.90, cal: 118, sugar: 16, caf: 100, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC004', name: 'Kopi O Kosong', base: 'Kopi', temp: 'Hot', sweet: 'Zero Sugar', milk: 'None', price: 3.20, cal: 24, sugar: 0, caf: 100, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC006', name: 'Kopi Siew Dai', base: 'Kopi', temp: 'Hot', sweet: 'Less Sugar', milk: 'Condensed Milk', price: 3.70, cal: 99, sugar: 8, caf: 100, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC012', name: 'Kopi Peng', base: 'Kopi', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 4.50, cal: 131, sugar: 16, caf: 100, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC013', name: 'Kopi O Peng', base: 'Kopi', temp: 'Iced', sweet: 'Normal', milk: 'None', price: 4.00, cal: 88, sugar: 16, caf: 100, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC016', name: 'Kopi O Kosong Peng', base: 'Kopi', temp: 'Iced', sweet: 'Zero Sugar', milk: 'None', price: 4.00, cal: 24, sugar: 0, caf: 100, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC023', name: 'Kopi C Siew Dai', base: 'Kopi', temp: 'Hot', sweet: 'Less Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 86, sugar: 8, caf: 100, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC024', name: 'Kopi C Ga Dai', base: 'Kopi', temp: 'Hot', sweet: 'Extra Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 150, sugar: 24, caf: 100, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC031', name: 'Kopi C Kosong', base: 'Kopi', temp: 'Hot', sweet: 'Zero Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 54, sugar: 0, caf: 100, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC129', name: 'Kopi C Peng', base: 'Kopi', temp: 'Iced', sweet: 'Normal', milk: 'Evaporated Milk', price: 4.70, cal: 118, sugar: 16, caf: 100, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC130', name: 'Kopi C Peng Siew Dai', base: 'Kopi', temp: 'Iced', sweet: 'Less Sugar', milk: 'Evaporated Milk', price: 4.70, cal: 86, sugar: 8, caf: 100, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC131', name: 'Kopi C Peng Kosong', base: 'Kopi', temp: 'Iced', sweet: 'Zero Sugar', milk: 'Evaporated Milk', price: 4.70, cal: 54, sugar: 0, caf: 100, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC045', name: 'Teh C Siew Dai', base: 'Teh', temp: 'Hot', sweet: 'Less Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 86, sugar: 8, caf: 50, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC046', name: 'Teh C Ga Dai', base: 'Teh', temp: 'Hot', sweet: 'Extra Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 150, sugar: 24, caf: 50, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC047', name: 'Teh C Kosong', base: 'Teh', temp: 'Hot', sweet: 'Zero Sugar', milk: 'Evaporated Milk', price: 3.90, cal: 54, sugar: 0, caf: 50, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC134', name: 'Teh C Peng Siew Dai', base: 'Teh', temp: 'Iced', sweet: 'Less Sugar', milk: 'Evaporated Milk', price: 4.70, cal: 86, sugar: 8, caf: 50, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
 
-      { id: 'KC038', name: 'Teh Tarik', base: 'Teh', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 3.70, cal: 131, sugar: 16, caf: 50 },
-      { id: 'KC044', name: 'Teh C', base: 'Teh', temp: 'Hot', sweet: 'Normal', milk: 'Evaporated Milk', price: 3.90, cal: 118, sugar: 16, caf: 50 },
-      { id: 'KC049', name: 'Teh O', base: 'Teh', temp: 'Hot', sweet: 'Normal', milk: 'None', price: 3.20, cal: 88, sugar: 16, caf: 50 },
-      { id: 'KC052', name: 'Teh O Kosong', base: 'Teh', temp: 'Hot', sweet: 'Zero Sugar', milk: 'None', price: 3.20, cal: 24, sugar: 0, caf: 50 },
-      { id: 'KC076', name: 'Teh Peng', base: 'Teh', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 4.50, cal: 131, sugar: 16, caf: 50 },
-      { id: 'KC133', name: 'Teh C Peng', base: 'Teh', temp: 'Iced', sweet: 'Normal', milk: 'Evaporated Milk', price: 4.70, cal: 118, sugar: 16, caf: 50 },
+      { id: 'KC038', name: 'Teh Tarik', base: 'Teh', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 3.70, cal: 131, sugar: 16, caf: 50, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC044', name: 'Teh C', base: 'Teh', temp: 'Hot', sweet: 'Normal', milk: 'Evaporated Milk', price: 3.90, cal: 118, sugar: 16, caf: 50, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC049', name: 'Teh O', base: 'Teh', temp: 'Hot', sweet: 'Normal', milk: 'None', price: 3.20, cal: 88, sugar: 16, caf: 50, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC052', name: 'Teh O Kosong', base: 'Teh', temp: 'Hot', sweet: 'Zero Sugar', milk: 'None', price: 3.20, cal: 24, sugar: 0, caf: 50, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC076', name: 'Teh Peng', base: 'Teh', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 4.50, cal: 131, sugar: 16, caf: 50, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC133', name: 'Teh C Peng', base: 'Teh', temp: 'Iced', sweet: 'Normal', milk: 'Evaporated Milk', price: 4.70, cal: 118, sugar: 16, caf: 50, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
 
       // Compound Local Drink: Teh O Limau (KC088 & variants — always No Milk)
-      { id: 'KC088H', name: 'Teh O Limau Panas', base: 'Teh O Limau', temp: 'Hot', sweet: 'Normal', milk: 'None', price: 3.20, cal: 88, sugar: 16, caf: 50 },
-      { id: 'KC088',  name: 'Teh O Ais Limau', base: 'Teh O Limau', temp: 'Iced', sweet: 'Normal', milk: 'None', price: 4.00, cal: 88, sugar: 16, caf: 50 },
-      { id: 'KC088L', name: 'Teh O Ais Limau Less Sugar', base: 'Teh O Limau', temp: 'Iced', sweet: 'Less Sugar', milk: 'None', price: 4.00, cal: 56, sugar: 8, caf: 50 },
-      { id: 'KC088Z', name: 'Teh O Ais Limau Kosong', base: 'Teh O Limau', temp: 'Iced', sweet: 'Zero Sugar', milk: 'None', price: 4.00, cal: 24, sugar: 0, caf: 50 },
+      { id: 'KC088H', name: 'Teh O Limau Panas', base: 'Teh O Limau', temp: 'Hot', sweet: 'Normal', milk: 'None', price: 3.20, cal: 88, sugar: 16, caf: 50, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC088',  name: 'Teh O Ais Limau', base: 'Teh O Limau', temp: 'Iced', sweet: 'Normal', milk: 'None', price: 4.00, cal: 88, sugar: 16, caf: 50, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC088L', name: 'Teh O Ais Limau Less Sugar', base: 'Teh O Limau', temp: 'Iced', sweet: 'Less Sugar', milk: 'None', price: 4.00, cal: 56, sugar: 8, caf: 50, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC088Z', name: 'Teh O Ais Limau Kosong', base: 'Teh O Limau', temp: 'Iced', sweet: 'Zero Sugar', milk: 'None', price: 4.00, cal: 24, sugar: 0, caf: 50, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
 
-      { id: 'KC109', name: 'Cham', base: 'Cham', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 4.20, cal: 131, sugar: 16, caf: 110 },
-      { id: 'KC110', name: 'Cham Peng', base: 'Cham', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 5.00, cal: 131, sugar: 16, caf: 110 },
-      { id: 'KC115', name: 'Cham Kosong', base: 'Cham', temp: 'Hot', sweet: 'Zero Sugar', milk: 'None', price: 3.70, cal: 24, sugar: 0, caf: 110 },
-      { id: 'KC118', name: 'Cham Peng Siew Dai', base: 'Cham', temp: 'Iced', sweet: 'Less Sugar', milk: 'Condensed Milk', price: 5.00, cal: 99, sugar: 8, caf: 110 },
+      { id: 'KC109', name: 'Cham', base: 'Cham', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 4.20, cal: 131, sugar: 16, caf: 110, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC110', name: 'Cham Peng', base: 'Cham', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 5.00, cal: 131, sugar: 16, caf: 110, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC115', name: 'Cham Kosong', base: 'Cham', temp: 'Hot', sweet: 'Zero Sugar', milk: 'None', price: 3.70, cal: 24, sugar: 0, caf: 110, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC118', name: 'Cham Peng Siew Dai', base: 'Cham', temp: 'Iced', sweet: 'Less Sugar', milk: 'Condensed Milk', price: 5.00, cal: 99, sugar: 8, caf: 110, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
 
-      { id: 'KC123', name: 'White Coffee', base: 'White Coffee', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 4.30, cal: 131, sugar: 16, caf: 130 },
-      { id: 'KC124', name: 'White Coffee Peng', base: 'White Coffee', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 5.10, cal: 131, sugar: 16, caf: 130 },
+      { id: 'KC123', name: 'White Coffee', base: 'White Coffee', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 4.30, cal: 131, sugar: 16, caf: 130, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
+      { id: 'KC124', name: 'White Coffee Peng', base: 'White Coffee', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 5.10, cal: 131, sugar: 16, caf: 130, contains_lactose: true, contains_gluten: false, allergens_summary: 'Dairy (Lactose)', lactose: true, gluten: false },
 
-      { id: 'KC058', name: 'Milo', base: 'Milo', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 3.70, cal: 131, sugar: 16, caf: 25 },
-      { id: 'KC097', name: 'Milo Peng', base: 'Milo', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 4.50, cal: 131, sugar: 16, caf: 25 },
-      { id: 'KC057', name: 'Milo Dinosaur', base: 'Milo', temp: 'Iced', sweet: 'Extra Sugar', milk: 'Condensed Milk', price: 5.50, cal: 280, sugar: 36, caf: 25 },
+      { id: 'KC058', name: 'Milo', base: 'Milo', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 3.70, cal: 131, sugar: 16, caf: 25, contains_lactose: true, contains_gluten: true, allergens_summary: 'Dairy (Lactose), Gluten (Barley Malt)', lactose: true, gluten: true },
+      { id: 'KC097', name: 'Milo Peng', base: 'Milo', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 4.50, cal: 131, sugar: 16, caf: 25, contains_lactose: true, contains_gluten: true, allergens_summary: 'Dairy (Lactose), Gluten (Barley Malt)', lactose: true, gluten: true },
+      { id: 'KC057', name: 'Milo Dinosaur', base: 'Milo', temp: 'Iced', sweet: 'Extra Sugar', milk: 'Condensed Milk', price: 5.50, cal: 280, sugar: 36, caf: 25, contains_lactose: true, contains_gluten: true, allergens_summary: 'Dairy (Lactose), Gluten (Barley Malt)', lactose: true, gluten: true },
 
-      { id: 'KC119', name: 'Neslo', base: 'Neslo', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 4.20, cal: 131, sugar: 16, caf: 70 },
-      { id: 'KC120', name: 'Neslo Peng', base: 'Neslo', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 5.00, cal: 131, sugar: 16, caf: 70 },
-      { id: 'KC077', name: 'Teh O Peng', base: 'Teh', temp: 'Iced', sweet: 'Normal', milk: 'None', price: 4.00, cal: 88, sugar: 16, caf: 50 },
-      { id: 'KC078', name: 'Teh O Kosong Peng', base: 'Teh', temp: 'Iced', sweet: 'Zero Sugar', milk: 'None', price: 4.00, cal: 24, sugar: 0, caf: 50 },
-      { id: 'KC056N', name: 'Milo O', base: 'Milo', temp: 'Hot', sweet: 'Normal', milk: 'None', price: 3.20, cal: 88, sugar: 16, caf: 25 },
-      { id: 'KC056', name: 'Milo O Kosong', base: 'Milo', temp: 'Hot', sweet: 'Zero Sugar', milk: 'None', price: 3.20, cal: 24, sugar: 0, caf: 25 },
-      { id: 'KC056I', name: 'Milo O Peng', base: 'Milo', temp: 'Iced', sweet: 'Normal', milk: 'None', price: 4.00, cal: 88, sugar: 16, caf: 25 },
-      { id: 'KC056IZ', name: 'Milo O Kosong Peng', base: 'Milo', temp: 'Iced', sweet: 'Zero Sugar', milk: 'None', price: 4.00, cal: 24, sugar: 0, caf: 25 },
-      { id: 'SC041', name: 'Hot Americano', base: 'Americano', temp: 'Hot', sweet: 'Zero Sugar', milk: 'None', price: 5.00, cal: 5, sugar: 0, caf: 75 },
-      { id: 'SC042', name: 'Iced Americano', base: 'Americano', temp: 'Iced', sweet: 'Zero Sugar', milk: 'None', price: 5.80, cal: 10, sugar: 0, caf: 150 }
+      { id: 'KC119', name: 'Neslo', base: 'Neslo', temp: 'Hot', sweet: 'Normal', milk: 'Condensed Milk', price: 4.20, cal: 131, sugar: 16, caf: 70, contains_lactose: true, contains_gluten: true, allergens_summary: 'Dairy (Lactose), Gluten (Barley Malt)', lactose: true, gluten: true },
+      { id: 'KC120', name: 'Neslo Peng', base: 'Neslo', temp: 'Iced', sweet: 'Normal', milk: 'Condensed Milk', price: 5.00, cal: 131, sugar: 16, caf: 70, contains_lactose: true, contains_gluten: true, allergens_summary: 'Dairy (Lactose), Gluten (Barley Malt)', lactose: true, gluten: true },
+      { id: 'KC077', name: 'Teh O Peng', base: 'Teh', temp: 'Iced', sweet: 'Normal', milk: 'None', price: 4.00, cal: 88, sugar: 16, caf: 50, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC078', name: 'Teh O Kosong Peng', base: 'Teh', temp: 'Iced', sweet: 'Zero Sugar', milk: 'None', price: 4.00, cal: 24, sugar: 0, caf: 50, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'KC056N', name: 'Milo O', base: 'Milo', temp: 'Hot', sweet: 'Normal', milk: 'None', price: 3.20, cal: 88, sugar: 16, caf: 25, contains_lactose: true, contains_gluten: true, allergens_summary: 'Dairy (Lactose), Gluten (Barley Malt)', lactose: true, gluten: true },
+      { id: 'KC056', name: 'Milo O Kosong', base: 'Milo', temp: 'Hot', sweet: 'Zero Sugar', milk: 'None', price: 3.20, cal: 24, sugar: 0, caf: 25, contains_lactose: true, contains_gluten: true, allergens_summary: 'Dairy (Lactose), Gluten (Barley Malt)', lactose: true, gluten: true },
+      { id: 'KC056I', name: 'Milo O Peng', base: 'Milo', temp: 'Iced', sweet: 'Normal', milk: 'None', price: 4.00, cal: 88, sugar: 16, caf: 25, contains_lactose: true, contains_gluten: true, allergens_summary: 'Dairy (Lactose), Gluten (Barley Malt)', lactose: true, gluten: true },
+      { id: 'KC056IZ', name: 'Milo O Kosong Peng', base: 'Milo', temp: 'Iced', sweet: 'Zero Sugar', milk: 'None', price: 4.00, cal: 24, sugar: 0, caf: 25, contains_lactose: true, contains_gluten: true, allergens_summary: 'Dairy (Lactose), Gluten (Barley Malt)', lactose: true, gluten: true },
+      { id: 'SC041', name: 'Hot Americano', base: 'Americano', temp: 'Hot', sweet: 'Zero Sugar', milk: 'None', price: 5.00, cal: 5, sugar: 0, caf: 75, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false },
+      { id: 'SC042', name: 'Iced Americano', base: 'Americano', temp: 'Iced', sweet: 'Zero Sugar', milk: 'None', price: 5.80, cal: 10, sugar: 0, caf: 150, contains_lactose: false, contains_gluten: false, allergens_summary: 'None (Allergen-Free)', lactose: false, gluten: false }
     ];
 
     const MENU_PAGES = [
@@ -954,7 +954,7 @@
       }
 
       // Sweetness Entity
-      if (text.includes('无糖') || text.includes('無糖') || text.includes('走糖') || /\b(?:kosong|zero sugar|no sugar|tanpa gula|zero)\b|\b0\s*%/.test(tLow)) {
+      if (text.includes('无糖') || text.includes('無糖') || text.includes('走糖') || /\b(?:kosong|zero sugar|no sugar|tanpa gula|zero|0)\b|\b0\s*%/.test(tLow)) {
         slots.sweetness_level = 'Zero Sugar';
       } else if (text.includes('少糖') || text.includes('微糖') || text.includes('少甜') || text.includes('半糖') || /\b(?:siu dai|siew dai|less sugar|kurang manis|sedikit manis|sedikit gula|half sugar|less sweet)\b|\b(?:50|30|25)\s*%/.test(tLow)) {
         slots.sweetness_level = 'Less Sugar';
@@ -1446,7 +1446,8 @@
         'nak', 'mau', 'satu', 'dua', 'tiga', 'panas', 'sejuk', 'ais', 'kurang', 'manis', 'tak', 'xnak', 'taknak',
         'tanpa', 'gula', 'susu', 'cair', 'pekat', 'batal', 'semula', 'bayar', 'boleh', 'sedap', 'minum',
         'cawan', 'tambah', 'bancuh', 'tolong', 'bagi', 'saya', 'sihat', 'berapa', 'apa', 'ini', 'sedikit',
-        'teh', 'kopi', 'cham'
+        'teh', 'kopi', 'cham', 'air', 'ni', 'tu', 'ke', 'tinggi', 'rendah', 'kalori', 'gemuk', 'bikin',
+        'laktosa', 'alahan', 'alergen', 'alergi', 'intoleran', 'intoleransi', 'ada', 'lah', 'ia'
       ];
       let bmHits = 0;
       for (const w of bmWords) {
@@ -1456,7 +1457,9 @@
       const enWords = [
         'want', 'order', 'please', 'one', 'two', 'hot', 'iced', 'ice', 'cold', 'warm',
         'less', 'sugar', 'zero', 'no', 'milk', 'condensed', 'evaporated', 'cancel', 'reset',
-        'confirm', 'yes', 'healthy', 'calorie', 'calories', 'which', 'drink', 'instead', 'change'
+        'confirm', 'yes', 'healthy', 'calorie', 'calories', 'which', 'drink', 'instead', 'change',
+        'does', 'this', 'cup', 'have', 'contain', 'contains', 'lactose', 'gluten', 'allergen', 'allergens',
+        'allergy', 'allergic', 'intolerant', 'intolerance', 'the', 'is', 'it', 'any', 'safe', 'recommend', 'free'
       ];
       let enHits = 0;
       for (const w of enWords) {
@@ -1592,10 +1595,99 @@
         return triggerConfirmAndDispense(userLang);
       }
 
+      function classifyCalorieTier(cal, drinkName, sugar, lang) {
+      if (cal < 50) {
+        if (lang === 'zh') return `【${drinkName}】约 ${cal} kcal（含糖 ${sugar}g），属于【第 1 级：极低卡（< 50 kcal）】！非常健康，0 蔗糖且近乎零脂肪，非常适合减脂、控糖或日常健身人士饮用，完全不会发胖！`;
+        if (lang === 'bm') return `【${drinkName}】 mengandungi kira-kira ${cal} kcal (${sugar}g gula), tergolong dalam 【Tahap 1: Sangat Rendah Kalori (< 50 kcal)】! Sangat sihat, 0 gula tambahan dan hampir sifar lemak. Amat sesuai untuk diet kurus badan atau kawalan gula, langsung tidak menggemukkan!`;
+        return `【${drinkName}】 contains approx. ${cal} kcal (${sugar}g sugar), classified as 【Tier 1: Very Low Calorie (< 50 kcal)】! Very healthy with zero added sugar and virtually zero fat. Perfectly suitable for weight loss and diet-conscious lifestyles—won't make you gain weight!`;
+      } else if (cal <= 120) {
+        if (lang === 'zh') return `【${drinkName}】约 ${cal} kcal（含糖 ${sugar}g），属于【第 2 级：适中微甜（50 - 120 kcal）】！热量与糖分适中，属于轻盈清爽型饮品。适量饮用不会造成身体负担，是兼顾风味与健康的平衡之选！`;
+        if (lang === 'bm') return `【${drinkName}】 mengandungi kira-kira ${cal} kcal (${sugar}g gula), tergolong dalam 【Tahap 2: Rendah-Sederhana (50 - 120 kcal)】! Kalori dan kemanisan yang sederhana serta menyegarkan. Pilihan seimbang yang tidak membebankan pengambilan kalori harian anda!`;
+        return `【${drinkName}】 contains approx. ${cal} kcal (${sugar}g sugar), classified as 【Tier 2: Low-to-Moderate (50 - 120 kcal)】! Moderate calories with light sweetness. A well-balanced, refreshing option that satisfies cravings without heavy caloric burden!`;
+      } else if (cal <= 180) {
+        if (lang === 'zh') return `【${drinkName}】约 ${cal} kcal（含糖 ${sugar}g），属于【第 3 级：常规传统茶室水平（120 - 180 kcal）】！热量主要来自甜炼乳与糖分。如果是为了控糖或减脂，建议选择「少甜（Siew Dai）」减少炼乳，或者改选无奶黑咖啡（Kopi O / Americano）哦！`;
+        if (lang === 'bm') return `【${drinkName}】 mengandungi kira-kira ${cal} kcal (${sugar}g gula), tergolong dalam 【Tahap 3: Sedang-Tinggi / Piawai Kopitiam (120 - 180 kcal)】! Kalori ini datang terutamanya daripada susu pekat manis. Jika ingin kawal berat badan atau gula, disyorkan pilih 'Kurang Manis (Siew Dai)' atau beralih ke kopi hitam (Kopi O / Americano)!`;
+        return `【${drinkName}】 contains approx. ${cal} kcal (${sugar}g sugar), classified as 【Tier 3: Standard Kopitiam (120 - 180 kcal)】! Calories primarily originate from sweetened condensed milk and sugar. If watching calories or sugar, we suggest ordering 'Less Sugar (Siew Dai)' or switching to black coffee (Kopi O / Americano)!`;
+      } else {
+        if (lang === 'zh') return `【${drinkName}】约 ${cal} kcal（含糖 ${sugar}g），属于【第 4 级：偏高能量（> 180 kcal）】！由于加入了麦芽浓缩粉、可可或多重炼乳，热量与糖分偏高，多喝容易增重发胖。建议当作偶尔犒赏；若想喝得轻盈，建议改选少甜或 Kopi O Kosong！`;
+        if (lang === 'bm') return `【${drinkName}】 mengandungi kira-kira ${cal} kcal (${sugar}g gula), tergolong dalam 【Tahap 4: Kalori Tinggi (> 180 kcal)】! Mengandungi tenaga dan gula yang tinggi daripada serbuk malt dan susu pekat manis. Sesuai sebagai hidangan tenaga sesekali; untuk kurangkan kalori, pilih versi kurang manis atau Kopi O Kosong!`;
+        return `【${drinkName}】 contains approx. ${cal} kcal (${sugar}g sugar), classified as 【Tier 4: High Calorie (> 180 kcal)】! Rich in malt powder, cocoa, and condensed milk with higher energy and sugar content. Best enjoyed as an occasional treat; for diet or fitness goals, opt for less sweetness or Kopi O Kosong instead!`;
+      }
+    }
+
+    function getDrinkAllergenReply(drinkName, hasLactose, hasGluten, inquiryType, lang) {
+      if (inquiryType === 'lactose') {
+        if (hasLactose) {
+          if (lang === 'zh') return `这杯【${drinkName}】含有乳糖（因为含有甜炼乳/淡奶）哦！如果您有乳糖不耐受，建议为您换成 100% 无奶的健康饮品，如黑咖啡（Kopi O / Americano）或纯茶（Teh O / Teh O Limau），完全不含乳糖！`;
+          if (lang === 'bm') return `Cawan 【${drinkName}】 ini mengandungi laktosa (daripada susu pekat/sejat)! Jika anda ada intoleransi laktosa, kami syorkan minuman tanpa susu seperti Kopi O, Americano, Teh O, atau Teh O Limau—100% bebas laktosa!`;
+          return `This cup of 【${drinkName}】 contains lactose (from condensed/evaporated milk)! If you are lactose intolerant, we recommend dairy-free alternatives such as Kopi O, Americano, Teh O, or Teh O Limau—all 100% lactose-free!`;
+        } else {
+          if (lang === 'zh') return `这杯【${drinkName}】完全不含乳糖（无任何奶制品成分）！乳糖不耐受的朋友可以放心安心饮用！`;
+          if (lang === 'bm') return `Cawan 【${drinkName}】 ini 100% bebas laktosa (tiada sebarang produk susu)! Selamat dan sesuai dinikmati oleh sesiapa yang ada intoleransi laktosa!`;
+          return `This cup of 【${drinkName}】 is completely dairy and lactose-free (contains zero milk products)! Perfectly safe for anyone with lactose intolerance!`;
+        }
+      } else if (inquiryType === 'gluten') {
+        if (hasGluten) {
+          if (lang === 'zh') return `这杯【${drinkName}】含有麸质（含有 Protomalt 大麦麦芽提取物）！如果您对麸质过敏或患有乳糜泻，建议选择纯咖啡（Kopi O / Americano）或纯茶（Teh O），都是天然 100% 无麸质的！`;
+          if (lang === 'bm') return `Cawan 【${drinkName}】 ini mengandungi gluten (ekstrak malt barli Protomalt)! Jika anda ada alahan gluten, kami syorkan kopi tulen (Kopi O / Americano) atau teh (Teh O) yang sememangnya 100% bebas gluten!`;
+          return `This cup of 【${drinkName}】 contains gluten (due to Protomalt barley malt extract)! If you have a gluten allergy or celiac condition, we recommend pure coffee (Kopi O / Americano) or tea (Teh O), which are naturally 100% gluten-free!`;
+        } else {
+          if (lang === 'zh') return `这杯【${drinkName}】完全不含麸质（天然无大麦或小麦成分）！对麸质敏感或过敏的朋友请放心饮用！`;
+          if (lang === 'bm') return `Cawan 【${drinkName}】 ini 100% bebas gluten (tiada bahan barli atau gandum)! Selamat diminum untuk mereka yang ada alahan atau sensitiviti gluten!`;
+          return `This cup of 【${drinkName}】 is 100% gluten-free (contains no barley, wheat, or malt)! Completely safe for anyone with gluten sensitivity or celiac disease!`;
+        }
+      } else {
+        if (lang === 'zh') {
+          const lacStr = hasLactose ? '含（来自炼乳/淡奶）' : '不含';
+          const gluStr = hasGluten ? '含（大麦麦芽提取物）' : '不含';
+          const advice = (hasLactose || hasGluten) ? '如需避开过敏原，推荐选择 100% 无奶无麸质的 Kopi O Kosong、Teh O 或 Americano！' : '此饮品天然安全，过敏人士可放心饮用！';
+          return `【${drinkName}】的过敏原检测：乳糖【${lacStr}】、麸质【${gluStr}】。${advice}`;
+        } else if (lang === 'bm') {
+          const lacStr = hasLactose ? 'Mengandungi (Susu Pekat/Sejat)' : 'Bebas';
+          const gluStr = hasGluten ? 'Mengandungi (Ekstrak Malt Barli)' : 'Bebas';
+          const advice = (hasLactose || hasGluten) ? 'Untuk elakkan alergen, kami syorkan Kopi O Kosong, Teh O, atau Americano!' : 'Minuman ini bebas alergen dan selamat dinikmati!';
+          return `Semakan alergen untuk 【${drinkName}】: Laktosa: ${lacStr}, Gluten: ${gluStr}. ${advice}`;
+        } else {
+          const lacStr = hasLactose ? 'Contains (Dairy)' : 'Free';
+          const gluStr = hasGluten ? 'Contains (Barley Malt)' : 'Free';
+          const advice = (hasLactose || hasGluten) ? 'To avoid allergens, we recommend allergen-free options like Kopi O Kosong, Teh O, or Americano!' : 'This drink is allergen-free and safe to enjoy!';
+          return `Allergen check for 【${drinkName}】: Lactose: ${lacStr}, Gluten: ${gluStr}. ${advice}`;
+        }
+      }
+    }
+
+    function getAllergenRecommendation(allergenType, lang) {
+      if (allergenType === 'lactose') {
+        if (lang === 'zh') return '为您推荐 100% 不含乳糖的健康饮品：Kopi O Kosong（24 kcal，RM 3.20）、Teh O Kosong（24 kcal，RM 3.20）、Teh O Ais Limau（88 kcal，RM 4.00）以及 Iced Americano（10 kcal，RM 5.80）！全部不含任何牛奶或炼乳，乳糖不耐受可安心饮用。需要为您来一杯吗？';
+        if (lang === 'bm') return 'ChatCoffee syorkan pilihan 100% bebas laktosa & bebas susu: Kopi O Kosong (24 kcal, RM 3.20), Teh O Kosong (24 kcal, RM 3.20), Teh O Ais Limau (88 kcal, RM 4.00), dan Iced Americano (10 kcal, RM 5.80)! Tiada sebarang produk tenusu. Nak saya sediakan yang mana satu?';
+        return 'ChatCoffee recommends 100% dairy and lactose-free options: Kopi O Kosong (24 kcal, RM 3.20), Teh O Kosong (24 kcal, RM 3.20), Teh O Ais Limau (88 kcal, RM 4.00), and Iced Americano (10 kcal, RM 5.80)! All are completely milk-free. Which one would you like?';
+      } else if (allergenType === 'gluten') {
+        if (lang === 'zh') return '为您推荐天然无麸质（Gluten-Free）饮品：纯咖啡系列（Kopi O、Kopi、Americano）以及茶饮系列（Teh O、Teh Tarik、Teh O Limau）均不含任何麦芽或小麦麸质！请避免点选 Milo 或 Neslo（含大麦麦芽提取物）。请问您想来哪一杯？';
+        if (lang === 'bm') return 'ChatCoffee syorkan pilihan bebas gluten semula jadi: semua kopi tulen (Kopi O, Kopi, Americano) dan teh (Teh O, Teh Tarik, Teh O Limau) adalah 100% bebas gluten! Sila elakkan Milo dan Neslo kerana mengandungi ekstrak malt barli. Nak minum yang mana boss?';
+        return 'ChatCoffee recommends naturally Gluten-Free drinks: all pure coffee (Kopi O, Kopi, Americano) and tea options (Teh O, Teh Tarik, Teh O Limau) are 100% gluten-free! Please avoid Milo and Neslo as they contain barley malt extract. What would you like to order?';
+      } else {
+        if (lang === 'zh') return '为您推荐 100% 无乳糖且无麸质的安全饮品：Kopi O Kosong（24 kcal，RM 3.20）、Teh O Kosong（24 kcal，RM 3.20）、Teh O Ais Limau（88 kcal，RM 4.00）以及 Iced Americano（10 kcal，RM 5.80）！完全不含乳制品及麦芽麸质，请问需要为您准备哪一杯？';
+        if (lang === 'bm') return 'ChatCoffee syorkan pilihan 100% bebas alergen (tanpa laktosa & tanpa gluten): Kopi O Kosong (24 kcal, RM 3.20), Teh O Kosong (24 kcal, RM 3.20), Teh O Ais Limau (88 kcal, RM 4.00), dan Iced Americano (10 kcal, RM 5.80)! Nak saya sediakan yang mana satu?';
+        return 'ChatCoffee recommends 100% allergen-free options (both lactose-free and gluten-free): Kopi O Kosong (24 kcal, RM 3.20), Teh O Kosong (24 kcal, RM 3.20), Teh O Ais Limau (88 kcal, RM 4.00), and Iced Americano (10 kcal, RM 5.80)! Which one would you prefer?';
+      }
+    }
+
+    function getNoDrinkPrompt(queryType, lang) {
+      if (queryType === 'calorie') {
+        if (lang === 'zh') return '您目前还没有选择饮品哦！请先告诉我您想了解哪一杯（例如 Kopi、Teh Tarik 或 Americano），或者直接点一杯，我来为您评估热量！';
+        if (lang === 'bm') return 'Anda belum pilih sebarang minuman lagi! Sila beritahu minuman mana yang ingin disemak (cth. Kopi, Teh Tarik, atau Americano), atau buat pesanan dahulu untuk saya semak kalorinya!';
+        return "You haven't selected a drink yet! Please let me know which drink you'd like to check (e.g., Kopi, Teh Tarik, or Americano), or order one and I'll assess its calories for you!";
+      } else {
+        if (lang === 'zh') return '您目前还没选择饮品哦！请先告诉我您想了解哪一杯，或者我可以为您推荐 100% 无乳糖、无麸质的纯茶与黑咖啡（如 Kopi O、Teh O、Americano）！';
+        if (lang === 'bm') return 'Anda belum pilih sebarang minuman lagi! Sila pilih minuman dahulu, atau saya boleh syorkan pilihan 100% bebas laktosa & bebas gluten seperti Kopi O, Teh O, atau Americano!';
+        return "You haven't selected a drink yet! Please tell me which drink you'd like to check, or I can recommend 100% lactose-free and gluten-free options like Kopi O, Teh O, or Americano!";
+      }
+    }
+
       // 3.5 Price Query (prevent hijacking to health_query when user asks "how much / berapa")
       const isPriceQuery =
         (/\b(?:how\s+much|price|pricing|cost|harga|berapa(?:\s+ringgit)?)\b/i.test(tLow) || ['多少钱', '几块', '几钱', '价钱', '价格'].some(w => utterance.includes(w))) &&
-        !/\b(?:calorie|calories|kalori|sugar|gula|卡路里|热量)\b/i.test(tLow);
+        !/\b(?:calorie|calories|kalori|sugar|gula|卡路里|热量|lactose|gluten|allergen|乳糖|麸质|过敏|高不高|胖不胖)\b/i.test(tLow);
       if (isPriceQuery) {
         if (slots.base_drink) {
           const match = KOPITIAM_KB.find(item =>
@@ -1617,38 +1709,132 @@
           : 'ChatCoffee drinks range from RM 3.20 to RM 5.80 (e.g., Kopi O RM 3.20, Kopi C Peng RM 4.70, Cham Peng RM 5.00). Which drink would you like to check?';
       }
 
-      // 4. Pure Health & Calorie RAG (Direct nutrition response, without mutating cart slots or hijacking pending slot)
+      // 4. Pure Health, Calorie & Allergen RAG (Direct nutrition response, with coreference resolution and 4-tier calorie evaluation, without mutating cart slots or hijacking pending slot)
+      const isAllergenInquiry = /(?:lactose|laktosa|gluten|allergen|allergens|allergi|alergi|alahan|alergik|allergic|allergy|intoleran|intolerant|intolerance|intoleransi|dairy|乳糖|麸质|过敏|乳糜泻|过敏原)/i.test(tLow);
+      const isSubjectiveCalorie = /(?:高不高|胖不胖|会胖吗|容易胖吗|长胖|发胖|长肉|高吗|high\s*calori|is\s+it\s+high|fattening|make\s+me\s+fat|gain\s+weight|tinggi\s+kalori|bikin\s+gemuk|gemuk|kalori\s+tinggi|banyak\s+kalori)/i.test(tLow);
       const isCalorieQuery = intent === 'health_query' ||
-        /\b(?:calorie|calories|kalori|nutrisi|gula|kafein|卡路里|多少卡|热量|含糖量)\b/i.test(tLow);
+        /\b(?:calorie|calories|kalori|nutrisi|gula|kafein|卡路里|多少卡|热量|含糖量|kcal)\b/i.test(tLow) ||
+        isSubjectiveCalorie;
+      const isHealthQuestion = /\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang|sihat|healthy|diet)\b/i.test(tLow) || utterance.includes('?') || utterance.includes('？');
 
-      if (isCalorieQuery) {
-        if (slots.base_drink) {
-          const match = KOPITIAM_KB.find(item =>
-            item.base === slots.base_drink &&
-            (!slots.milk_type || item.milk === slots.milk_type) &&
-            (!slots.temperature || item.temp === slots.temperature) &&
-            (!slots.sweetness_level || item.sweet === slots.sweetness_level)
-          ) || KOPITIAM_KB.find(item =>
-            item.base === slots.base_drink &&
-            (!slots.milk_type || item.milk === slots.milk_type) &&
-            (!slots.temperature || item.temp === slots.temperature)
-          ) || KOPITIAM_KB.find(item =>
-            item.base === slots.base_drink &&
-            (!slots.temperature || item.temp === slots.temperature)
-          ) || KOPITIAM_KB.find(item => item.base === slots.base_drink);
+      const isAwaitingConfirm = engineState.status === 'AWAITING_CONFIRMATION';
+      if (isAllergenInquiry || isSubjectiveCalorie || (isCalorieQuery && !isAwaitingConfirm) || (intent === 'health_query' && (isHealthQuestion || isCalorieQuery || isAllergenInquiry))) {
+        const isCoref = /(?:这杯|这个|这款|当前这杯|刚点的|选的这杯|那杯|this\s+cup|this\s+drink|this\s+one|current\s+drink|my\s+drink|air\s+ni|cawan\s+ni|minuman\s+ni|air\s+ini|cawan\s+ini|minuman\s+ini|air\s+tu|cawan\s+tu)/i.test(tLow);
 
-          if (match) {
-            let reply = '';
-            if (userLang === 'zh') {
-              reply = `${match.name} 的营养与价格信息：热量约 ${match.cal} kcal，含糖量 ${match.sugar}g，咖啡因 ${match.caf}mg，单价 RM ${match.price.toFixed(2)}。`;
-            } else if (userLang === 'bm') {
-              reply = `Maklumat nutrisi ${match.name}: Kira-kira ${match.cal} kcal, ${match.sugar}g gula, ${match.caf}mg kafein, harga RM ${match.price.toFixed(2)}.`;
-            } else {
-              reply = `Nutrition info for ${match.name}: Approx ${match.cal} kcal, ${match.sugar}g sugar, ${match.caf}mg caffeine, price RM ${match.price.toFixed(2)}.`;
-            }
-            return reply;
+        let targetDrink = null;
+        const drinkNames = ["Milo Dinosaur", "Milo Godzilla", "Teh O Ais Limau", "Teh O Limau", "Kopi O Kosong", "Teh O Kosong", "White Coffee", "Milo", "Neslo", "Cham", "Kopi C", "Kopi O", "Kopi", "Teh C", "Teh O", "Teh Tarik", "Teh", "Americano"];
+        for (const bName of drinkNames) {
+          if (tLow.includes(bName.toLowerCase())) {
+            targetDrink = bName;
+            break;
           }
         }
+        if (!targetDrink) {
+          targetDrink = slots.base_drink;
+          if (targetDrink === 'Milo' && tLow.includes('dinosaur')) targetDrink = 'Milo Dinosaur';
+          else if (targetDrink === 'Teh' && tLow.includes('tarik')) targetDrink = 'Teh Tarik';
+        }
+
+        let targetMilk = slots.milk_type;
+        let targetTemp = slots.temperature;
+        let targetSweet = slots.sweetness_level;
+
+        const isRecommendationQuery = /\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang|pilihan|senarai|list|tunjuk|推荐|介绍|有(?:什么|哪些)|有什么)\b/i.test(tLow);
+
+        if (!targetDrink && (isCoref || (!isRecommendationQuery && engineState.base_drink))) {
+          if (engineState.base_drink) {
+            targetDrink = engineState.base_drink;
+            if (!targetMilk) targetMilk = engineState.milk_type;
+            if (!targetTemp) targetTemp = engineState.temperature;
+            if (!targetSweet) targetSweet = engineState.sweetness_level;
+          }
+        }
+
+        // Branch A: Allergen inquiry
+        if (isAllergenInquiry) {
+          if (!targetDrink) {
+            if (isCoref) {
+              return getNoDrinkPrompt('allergen', userLang);
+            } else {
+              if (/(?:lactose|laktosa|乳糖|dairy|susu)/i.test(tLow)) {
+                return getAllergenRecommendation('lactose', userLang);
+              } else if (/(?:gluten|麸质)/i.test(tLow)) {
+                return getAllergenRecommendation('gluten', userLang);
+              } else {
+                return getAllergenRecommendation('all', userLang);
+              }
+            }
+          }
+
+          let match = KOPITIAM_KB.find(item =>
+            (item.name.toLowerCase() === targetDrink.toLowerCase() || item.base.toLowerCase() === targetDrink.toLowerCase()) &&
+            (!targetMilk || item.milk === targetMilk) &&
+            (!targetTemp || item.temp === targetTemp) &&
+            (!targetSweet || item.sweet === targetSweet)
+          ) || KOPITIAM_KB.find(item =>
+            (item.name.toLowerCase() === targetDrink.toLowerCase() || item.base.toLowerCase() === targetDrink.toLowerCase()) &&
+            (!targetMilk || item.milk === targetMilk) &&
+            (!targetTemp || item.temp === targetTemp)
+          ) || KOPITIAM_KB.find(item =>
+            item.name.toLowerCase() === targetDrink.toLowerCase() || item.base.toLowerCase() === targetDrink.toLowerCase()
+          );
+
+          let hasLactose = false;
+          let hasGluten = false;
+          let drinkDisplayName = targetDrink;
+          if (match) {
+            drinkDisplayName = match.name;
+            hasLactose = !!match.contains_lactose;
+            hasGluten = !!match.contains_gluten;
+          } else {
+            if (['Milo', 'Neslo'].includes(targetDrink)) {
+              hasGluten = true;
+              hasLactose = true;
+            } else if (['Condensed Milk', 'Evaporated Milk'].includes(targetMilk) || (targetMilk !== 'None' && !['Americano', 'Teh O Limau'].includes(targetDrink))) {
+              hasLactose = true;
+            }
+          }
+
+          let inquiryType = 'general';
+          if (/(?:lactose|laktosa|乳糖|dairy|susu)/i.test(tLow)) {
+            inquiryType = 'lactose';
+          } else if (/(?:gluten|麸质)/i.test(tLow)) {
+            inquiryType = 'gluten';
+          }
+
+          return getDrinkAllergenReply(drinkDisplayName, hasLactose, hasGluten, inquiryType, userLang);
+        }
+
+        // Branch B: Calorie inquiry
+        if (isCalorieQuery) {
+          if (!targetDrink) {
+            if (isCoref || isSubjectiveCalorie) {
+              return getNoDrinkPrompt('calorie', userLang);
+            } else {
+              return getNlgReply('health_query', {}, userLang);
+            }
+          }
+
+          let match = KOPITIAM_KB.find(item =>
+            (item.name.toLowerCase() === targetDrink.toLowerCase() || item.base.toLowerCase() === targetDrink.toLowerCase()) &&
+            (!targetMilk || item.milk === targetMilk) &&
+            (!targetTemp || item.temp === targetTemp) &&
+            (!targetSweet || item.sweet === targetSweet)
+          ) || KOPITIAM_KB.find(item =>
+            (item.name.toLowerCase() === targetDrink.toLowerCase() || item.base.toLowerCase() === targetDrink.toLowerCase()) &&
+            (!targetMilk || item.milk === targetMilk) &&
+            (!targetTemp || item.temp === targetTemp)
+          ) || KOPITIAM_KB.find(item =>
+            item.name.toLowerCase() === targetDrink.toLowerCase() || item.base.toLowerCase() === targetDrink.toLowerCase()
+          );
+
+          if (match) {
+            return classifyCalorieTier(match.cal, match.name, match.sugar, userLang);
+          } else {
+            return classifyCalorieTier(100, targetDrink, 12, userLang);
+          }
+        }
+
         return getNlgReply('health_query', {}, userLang);
       }
 

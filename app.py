@@ -273,7 +273,7 @@ def extract_slots(text: str) -> Dict[str, str]:
     # 3. Sweetness (tightened to avoid 'banyak ais' / 'sedikit ais' false positives)
     if (
         "无糖" in text or "無糖" in text or "走糖" in text or
-        re.search(r"\b(?:kosong|zero sugar|no sugar|tanpa gula|zero)\b|\b0\s*%", t_low)
+        re.search(r"\b(?:kosong|zero sugar|no sugar|tanpa gula|zero|0)\b|\b0\s*%", t_low)
     ):
         slots["sweetness_level"] = "Zero Sugar"
     elif (
@@ -340,8 +340,46 @@ def lookup_price_and_nutrition(state: Dict[str, Any]) -> Dict[str, Any]:
         price += 0.80
 
     calories, sugars_g = 99, 12.0
+    if state.get("calories") is not None:
+        calories = int(state["calories"])
+    if state.get("sugars_g") is not None:
+        sugars_g = float(state["sugars_g"])
+
+    contains_lactose = False
+    contains_gluten = False
+    allergens_summary = "None (Allergen-Free)"
+    display_name = base
+
+    # Candidate name resolution for Kopitiam drink combos
+    candidate_names = []
+    if base in ("Kopi", "Teh", "Cham", "Milo"):
+        if milk == "None":
+            if sweet == "Zero Sugar":
+                candidate_names.append(f"{base} O Kosong")
+            elif sweet == "Less Sugar":
+                candidate_names.append(f"{base} O Siew Dai")
+            candidate_names.append(f"{base} O")
+        elif milk == "Evaporated Milk":
+            if sweet == "Zero Sugar":
+                candidate_names.append(f"{base} C Kosong")
+            elif sweet == "Less Sugar":
+                candidate_names.append(f"{base} C Siew Dai")
+            candidate_names.append(f"{base} C")
+        elif sweet == "Zero Sugar":
+            candidate_names.append(f"{base} Kosong")
+        elif sweet == "Less Sugar":
+            candidate_names.append(f"{base} Siew Dai")
+    candidate_names.append(base)
+
     if not df_kb.empty:
-        sub = df_kb[df_kb["drink_name"].str.contains(re.escape(base), case=False, na=False)]
+        sub = pd.DataFrame()
+        for cname in candidate_names:
+            m = df_kb[df_kb["drink_name"].str.lower() == cname.lower()]
+            if not m.empty:
+                sub = m
+                break
+        if sub.empty:
+            sub = df_kb[df_kb["drink_name"].str.contains(re.escape(base), case=False, na=False)]
         if temp:
             t_sub = sub[sub["temperature"].str.lower() == temp.lower()]
             if not t_sub.empty:
@@ -350,15 +388,94 @@ def lookup_price_and_nutrition(state: Dict[str, Any]) -> Dict[str, Any]:
             s_sub = sub[sub["sweetness_level"].str.lower() == sweet.lower()]
             if not s_sub.empty:
                 sub = s_sub
+        else:
+            s_sub = sub[sub["sweetness_level"].str.lower() == "normal"]
+            if not s_sub.empty:
+                sub = s_sub
+        if milk:
+            m_sub = sub[sub["milk_type"].astype(str).str.lower() == milk.lower()]
+            if not m_sub.empty:
+                sub = m_sub
         if not sub.empty:
             row = sub.iloc[0]
+            display_name = row["drink_name"]
             calories = int(row["calories"]) if pd.notna(row["calories"]) else calories
             sugars_g = float(row["sugars_g"]) if pd.notna(row["sugars_g"]) else sugars_g
+            if "contains_lactose" in row:
+                contains_lactose = bool(row["contains_lactose"])
+            if "contains_gluten" in row:
+                contains_gluten = bool(row["contains_gluten"])
+            if "allergens_summary" in row and pd.notna(row["allergens_summary"]):
+                allergens_summary = str(row["allergens_summary"])
+        else:
+            if base in ("Milo", "Neslo"):
+                contains_gluten = True
+                contains_lactose = True
+            elif milk in ("Condensed Milk", "Evaporated Milk", "Standard Milk", "Whole Milk", "2% Milk"):
+                contains_lactose = True
+            elif base not in ("Americano", "Teh O Limau") and milk != "None":
+                contains_lactose = True
+            parts = []
+            if contains_lactose:
+                parts.append("Dairy (Lactose)")
+            if contains_gluten:
+                parts.append("Gluten (Barley Malt)")
+            allergens_summary = ", ".join(parts) if parts else "None (Allergen-Free)"
+    else:
+        if base in ("Milo", "Neslo"):
+            contains_gluten = True
+            contains_lactose = True
+        elif milk in ("Condensed Milk", "Evaporated Milk", "Standard Milk", "Whole Milk", "2% Milk"):
+            contains_lactose = True
+        elif base not in ("Americano", "Teh O Limau") and milk != "None":
+            contains_lactose = True
+        parts = []
+        if contains_lactose:
+            parts.append("Dairy (Lactose)")
+        if contains_gluten:
+            parts.append("Gluten (Barley Malt)")
+        allergens_summary = ", ".join(parts) if parts else "None (Allergen-Free)"
 
-    return {"price_rm": round(price, 2), "calories": calories, "sugars_g": sugars_g}
+    return {
+        "display_name": display_name,
+        "price_rm": round(price, 2),
+        "calories": calories,
+        "sugars_g": sugars_g,
+        "contains_lactose": contains_lactose,
+        "contains_gluten": contains_gluten,
+        "allergens_summary": allergens_summary
+    }
 
 
-def query_healthy_drinks_from_kb(is_zh: bool) -> str:
+def detect_lang(text: str) -> str:
+    if not text:
+        return "en"
+    if re.search(r"[\u4e00-\u9fff]", text):
+        return "zh"
+    t_low = text.lower()
+    bm_words = [
+        "nak", "mau", "satu", "dua", "tiga", "panas", "sejuk", "ais", "kurang", "manis",
+        "tak", "xnak", "taknak", "tanpa", "gula", "susu", "cair", "pekat", "batal", "semula",
+        "bayar", "boleh", "sedap", "minum", "cawan", "tambah", "bancuh", "tolong", "bagi",
+        "saya", "sihat", "berapa", "apa", "ini", "tu", "ni", "ke", "lah", "ia", "ada",
+        "laktosa", "alahan", "alergen", "intoleransi", "tinggi", "rendah", "gemuk", "bikin"
+    ]
+    en_words = [
+        "the", "is", "this", "cup", "drink", "high", "calorie", "calories", "fattening", "make",
+        "gain", "weight", "what", "which", "how", "much", "does", "have", "contain", "contains",
+        "lactose", "gluten", "allergy", "allergic", "allergen", "allergens", "intolerant",
+        "intolerance", "safe", "recommend", "healthy", "diet", "free"
+    ]
+    bm_score = sum(1 for w in bm_words if re.search(r"\b" + re.escape(w) + r"\b", t_low))
+    en_score = sum(1 for w in en_words if re.search(r"\b" + re.escape(w) + r"\b", t_low))
+    if bm_score > en_score and bm_score > 0:
+        return "bm"
+    if en_score > 0:
+        return "en"
+    return "bm" if any(w in t_low for w in ["nak", "ni", "ke", "ada", "air", "kalori", "laktosa"]) else "en"
+
+
+def query_healthy_drinks_from_kb(lang: str) -> str:
     if not df_kb.empty:
         kopitiam = df_kb[
             (df_kb["channel"].str.contains("Kopitiam", case=False, na=False)) &
@@ -369,17 +486,140 @@ def query_healthy_drinks_from_kb(is_zh: bool) -> str:
                 f"{r['drink_name']} ({int(r['calories'])} kcal, {r['sugars_g']:g}g sugar, RM {float(r['price_rm']):.2f})"
                 for _, r in kopitiam.iterrows()
             ]
-            joined = "、".join(items_txt) if is_zh else ", ".join(items_txt)
-            return (
-                f"健康低卡推荐（来自营养知识库）：{joined}。需要为您点哪一杯？"
-                if is_zh else
-                f"Pilihan sihat & rendah kalori (KB Nutrisi): {joined}. Nak saya siapkan yang mana?"
-            )
-    return (
-        "健康推荐：Kopi O Kosong（24 kcal，0g 糖，RM 3.20）或 Iced Americano（10 kcal，0g 糖，RM 5.80）！需要为您来一杯吗？"
-        if is_zh else
-        "Untuk pilihan sihat & rendah kalori, kami cadangkan Kopi O Kosong (24 kcal, 0g gula, RM 3.20) atau Iced Americano (10 kcal, RM 5.80)! Nak saya siapkan sekarang?"
-    )
+            joined = "、".join(items_txt) if lang == "zh" else ", ".join(items_txt)
+            if lang == "zh":
+                return f"健康低卡推荐（来自营养知识库）：{joined}。需要为您点哪一杯？"
+            elif lang == "bm":
+                return f"Pilihan sihat & rendah kalori (KB Nutrisi): {joined}. Nak saya siapkan yang mana?"
+            else:
+                return f"Healthy & low-calorie recommendations (from Nutrition KB): {joined}. Which one would you like?"
+    if lang == "zh":
+        return "健康推荐：Kopi O Kosong（24 kcal，0g 糖，RM 3.20）或 Iced Americano（10 kcal，0g 糖，RM 5.80）！需要为您来一杯吗？"
+    elif lang == "bm":
+        return "Untuk pilihan sihat & rendah kalori, kami cadangkan Kopi O Kosong (24 kcal, 0g gula, RM 3.20) atau Iced Americano (10 kcal, RM 5.80)! Nak saya siapkan sekarang?"
+    else:
+        return "For healthy and low-calorie options, we recommend Kopi O Kosong (24 kcal, 0g sugar, RM 3.20) or Iced Americano (10 kcal, RM 5.80)! Would you like one?"
+
+
+def classify_calorie_tier(cal: int, drink_name: str, sugar: float, lang: str) -> str:
+    if cal < 50:
+        if lang == "zh":
+            return f"【{drink_name}】约 {cal} kcal（含糖 {sugar:g}g），属于【第 1 级：极低卡（< 50 kcal）】！非常健康，0 蔗糖且近乎零脂肪，非常适合减脂、控糖或日常健身人士饮用，完全不会发胖！"
+        elif lang == "bm":
+            return f"【{drink_name}】 mengandungi kira-kira {cal} kcal ({sugar:g}g gula), tergolong dalam 【Tahap 1: Sangat Rendah Kalori (< 50 kcal)】! Sangat sihat, 0 gula tambahan dan hampir sifar lemak. Amat sesuai untuk diet kurus badan atau kawalan gula, langsung tidak menggemukkan!"
+        else:
+            return f"【{drink_name}】 contains approx. {cal} kcal ({sugar:g}g sugar), classified as 【Tier 1: Very Low Calorie (< 50 kcal)】! Very healthy with zero added sugar and virtually zero fat. Perfectly suitable for weight loss and diet-conscious lifestyles—won't make you gain weight!"
+    elif cal <= 120:
+        if lang == "zh":
+            return f"【{drink_name}】约 {cal} kcal（含糖 {sugar:g}g），属于【第 2 级：适中微甜（50 - 120 kcal）】！热量与糖分适中，属于轻盈清爽型饮品。适量饮用不会造成身体负担，是兼顾风味与健康的平衡之选！"
+        elif lang == "bm":
+            return f"【{drink_name}】 mengandungi kira-kira {cal} kcal ({sugar:g}g gula), tergolong dalam 【Tahap 2: Rendah-Sederhana (50 - 120 kcal)】! Kalori dan kemanisan yang sederhana serta menyegarkan. Pilihan seimbang yang tidak membebankan pengambilan kalori harian anda!"
+        else:
+            return f"【{drink_name}】 contains approx. {cal} kcal ({sugar:g}g sugar), classified as 【Tier 2: Low-to-Moderate (50 - 120 kcal)】! Moderate calories with light sweetness. A well-balanced, refreshing option that satisfies cravings without heavy caloric burden!"
+    elif cal <= 180:
+        if lang == "zh":
+            return f"【{drink_name}】约 {cal} kcal（含糖 {sugar:g}g），属于【第 3 级：常规传统茶室水平（120 - 180 kcal）】！热量主要来自甜炼乳与糖分。如果是为了控糖或减脂，建议选择「少甜（Siew Dai）」减少炼乳，或者改选无奶黑咖啡（Kopi O / Americano）哦！"
+        elif lang == "bm":
+            return f"【{drink_name}】 mengandungi kira-kira {cal} kcal ({sugar:g}g gula), tergolong dalam 【Tahap 3: Sedang-Tinggi / Piawai Kopitiam (120 - 180 kcal)】! Kalori ini datang terutamanya daripada susu pekat manis. Jika ingin kawal berat badan atau gula, disyorkan pilih 'Kurang Manis (Siew Dai)' atau beralih ke kopi hitam (Kopi O / Americano)!"
+        else:
+            return f"【{drink_name}】 contains approx. {cal} kcal ({sugar:g}g sugar), classified as 【Tier 3: Standard Kopitiam (120 - 180 kcal)】! Calories primarily originate from sweetened condensed milk and sugar. If watching calories or sugar, we suggest ordering 'Less Sugar (Siew Dai)' or switching to black coffee (Kopi O / Americano)!"
+    else:
+        if lang == "zh":
+            return f"【{drink_name}】约 {cal} kcal（含糖 {sugar:g}g），属于【第 4 级：偏高能量（> 180 kcal）】！由于加入了麦芽浓缩粉、可可或多重炼乳，热量与糖分偏高，多喝容易增重发胖。建议当作偶尔犒赏；若想喝得轻盈，建议改选少甜或 Kopi O Kosong！"
+        elif lang == "bm":
+            return f"【{drink_name}】 mengandungi kira-kira {cal} kcal ({sugar:g}g gula), tergolong dalam 【Tahap 4: Kalori Tinggi (> 180 kcal)】! Mengandungi tenaga dan gula yang tinggi daripada serbuk malt dan susu pekat manis. Sesuai sebagai hidangan tenaga sesekali; untuk kurangkan kalori, pilih versi kurang manis atau Kopi O Kosong!"
+        else:
+            return f"【{drink_name}】 contains approx. {cal} kcal ({sugar:g}g sugar), classified as 【Tier 4: High Calorie (> 180 kcal)】! Rich in malt powder, cocoa, and condensed milk with higher energy and sugar content. Best enjoyed as an occasional treat; for diet or fitness goals, opt for less sweetness or Kopi O Kosong instead!"
+
+
+def get_drink_allergen_reply(drink_name: str, has_lactose: bool, has_gluten: bool, inquiry_type: str, lang: str) -> str:
+    if inquiry_type == "lactose":
+        if has_lactose:
+            if lang == "zh":
+                return f"这杯【{drink_name}】含有乳糖（因为含有甜炼乳/淡奶）哦！如果您有乳糖不耐受，建议为您换成 100% 无奶的健康饮品，如黑咖啡（Kopi O / Americano）或纯茶（Teh O / Teh O Limau），完全不含乳糖！"
+            elif lang == "bm":
+                return f"Cawan 【{drink_name}】 ini mengandungi laktosa (daripada susu pekat/sejat)! Jika anda ada intoleransi laktosa, kami syorkan minuman tanpa susu seperti Kopi O, Americano, Teh O, atau Teh O Limau—100% bebas laktosa!"
+            else:
+                return f"This cup of 【{drink_name}】 contains lactose (from condensed/evaporated milk)! If you are lactose intolerant, we recommend dairy-free alternatives such as Kopi O, Americano, Teh O, or Teh O Limau—all 100% lactose-free!"
+        else:
+            if lang == "zh":
+                return f"这杯【{drink_name}】完全不含乳糖（无任何奶制品成分）！乳糖不耐受的朋友可以放心安心饮用！"
+            elif lang == "bm":
+                return f"Cawan 【{drink_name}】 ini 100% bebas laktosa (tiada sebarang produk susu)! Selamat dan sesuai dinikmati oleh sesiapa yang ada intoleransi laktosa!"
+            else:
+                return f"This cup of 【{drink_name}】 is completely dairy and lactose-free (contains zero milk products)! Perfectly safe for anyone with lactose intolerance!"
+    elif inquiry_type == "gluten":
+        if has_gluten:
+            if lang == "zh":
+                return f"这杯【{drink_name}】含有麸质（含有 Protomalt 大麦麦芽提取物）！如果您对麸质过敏或患有乳糜泻，建议选择纯咖啡（Kopi O / Americano）或纯茶（Teh O），都是天然 100% 无麸质的！"
+            elif lang == "bm":
+                return f"Cawan 【{drink_name}】 ini mengandungi gluten (ekstrak malt barli Protomalt)! Jika anda ada alahan gluten, kami syorkan kopi tulen (Kopi O / Americano) atau teh (Teh O) yang sememangnya 100% bebas gluten!"
+            else:
+                return f"This cup of 【{drink_name}】 contains gluten (due to Protomalt barley malt extract)! If you have a gluten allergy or celiac condition, we recommend pure coffee (Kopi O / Americano) or tea (Teh O), which are naturally 100% gluten-free!"
+        else:
+            if lang == "zh":
+                return f"这杯【{drink_name}】完全不含麸质（天然无大麦或小麦成分）！对麸质敏感或过敏的朋友请放心饮用！"
+            elif lang == "bm":
+                return f"Cawan 【{drink_name}】 ini 100% bebas gluten (tiada bahan barli atau gandum)! Selamat diminum untuk mereka yang ada alahan atau sensitiviti gluten!"
+            else:
+                return f"This cup of 【{drink_name}】 is 100% gluten-free (contains no barley, wheat, or malt)! Completely safe for anyone with gluten sensitivity or celiac disease!"
+    else:
+        if lang == "zh":
+            lac_str = "含（来自炼乳/淡奶）" if has_lactose else "不含"
+            glu_str = "含（大麦麦芽提取物）" if has_gluten else "不含"
+            advice = "如需避开过敏原，推荐选择 100% 无奶无麸质的 Kopi O Kosong、Teh O 或 Americano！" if (has_lactose or has_gluten) else "此饮品天然安全，过敏人士可放心饮用！"
+            return f"【{drink_name}】的过敏原检测：乳糖【{lac_str}】、麸质【{glu_str}】。{advice}"
+        elif lang == "bm":
+            lac_str = "Mengandungi (Susu Pekat/Sejat)" if has_lactose else "Bebas"
+            glu_str = "Mengandungi (Ekstrak Malt Barli)" if has_gluten else "Bebas"
+            advice = "Untuk elakkan alergen, kami syorkan Kopi O Kosong, Teh O, atau Americano!" if (has_lactose or has_gluten) else "Minuman ini bebas alergen dan selamat dinikmati!"
+            return f"Semakan alergen untuk 【{drink_name}】: Laktosa: {lac_str}, Gluten: {glu_str}. {advice}"
+        else:
+            lac_str = "Contains (Dairy)" if has_lactose else "Free"
+            glu_str = "Contains (Barley Malt)" if has_gluten else "Free"
+            advice = "To avoid allergens, we recommend allergen-free options like Kopi O Kosong, Teh O, or Americano!" if (has_lactose or has_gluten) else "This drink is allergen-free and safe to enjoy!"
+            return f"Allergen check for 【{drink_name}】: Lactose: {lac_str}, Gluten: {glu_str}. {advice}"
+
+
+def get_allergen_recommendation(allergen_type: str, lang: str) -> str:
+    if allergen_type == "lactose":
+        if lang == "zh":
+            return "为您推荐 100% 不含乳糖的健康饮品：Kopi O Kosong（24 kcal，RM 3.20）、Teh O Kosong（24 kcal，RM 3.20）、Teh O Ais Limau（88 kcal，RM 4.00）以及 Iced Americano（10 kcal，RM 5.80）！全部不含任何牛奶或炼乳，乳糖不耐受可安心饮用。需要为您来一杯吗？"
+        elif lang == "bm":
+            return "ChatCoffee syorkan pilihan 100% bebas laktosa & bebas susu: Kopi O Kosong (24 kcal, RM 3.20), Teh O Kosong (24 kcal, RM 3.20), Teh O Ais Limau (88 kcal, RM 4.00), dan Iced Americano (10 kcal, RM 5.80)! Tiada sebarang produk tenusu. Nak saya sediakan yang mana satu?"
+        else:
+            return "ChatCoffee recommends 100% dairy and lactose-free options: Kopi O Kosong (24 kcal, RM 3.20), Teh O Kosong (24 kcal, RM 3.20), Teh O Ais Limau (88 kcal, RM 4.00), and Iced Americano (10 kcal, RM 5.80)! All are completely milk-free. Which one would you like?"
+    elif allergen_type == "gluten":
+        if lang == "zh":
+            return "为您推荐天然无麸质（Gluten-Free）饮品：纯咖啡系列（Kopi O、Kopi、Americano）以及茶饮系列（Teh O、Teh Tarik、Teh O Limau）均不含任何麦芽或小麦麸质！请避免点选 Milo 或 Neslo（含大麦麦芽提取物）。请问您想来哪一杯？"
+        elif lang == "bm":
+            return "ChatCoffee syorkan pilihan bebas gluten semula jadi: semua kopi tulen (Kopi O, Kopi, Americano) dan teh (Teh O, Teh Tarik, Teh O Limau) adalah 100% bebas gluten! Sila elakkan Milo dan Neslo kerana mengandungi ekstrak malt barli. Nak minum yang mana boss?"
+        else:
+            return "ChatCoffee recommends naturally Gluten-Free drinks: all pure coffee (Kopi O, Kopi, Americano) and tea options (Teh O, Teh Tarik, Teh O Limau) are 100% gluten-free! Please avoid Milo and Neslo as they contain barley malt extract. What would you like to order?"
+    else:
+        if lang == "zh":
+            return "为您推荐 100% 无乳糖且无麸质的安全饮品：Kopi O Kosong（24 kcal，RM 3.20）、Teh O Kosong（24 kcal，RM 3.20）、Teh O Ais Limau（88 kcal，RM 4.00）以及 Iced Americano（10 kcal，RM 5.80）！完全不含乳制品及麦芽麸质，请问需要为您准备哪一杯？"
+        elif lang == "bm":
+            return "ChatCoffee syorkan pilihan 100% bebas alergen (tanpa laktosa & tanpa gluten): Kopi O Kosong (24 kcal, RM 3.20), Teh O Kosong (24 kcal, RM 3.20), Teh O Ais Limau (88 kcal, RM 4.00), dan Iced Americano (10 kcal, RM 5.80)! Nak saya sediakan yang mana satu?"
+        else:
+            return "ChatCoffee recommends 100% allergen-free options (both lactose-free and gluten-free): Kopi O Kosong (24 kcal, RM 3.20), Teh O Kosong (24 kcal, RM 3.20), Teh O Ais Limau (88 kcal, RM 4.00), and Iced Americano (10 kcal, RM 5.80)! Which one would you prefer?"
+
+
+def get_no_drink_prompt(query_type: str, lang: str) -> str:
+    if query_type == "calorie":
+        if lang == "zh":
+            return "您目前还没有选择饮品哦！请先告诉我您想了解哪一杯（例如 Kopi、Teh Tarik 或 Americano），或者直接点一杯，我来为您评估热量！"
+        elif lang == "bm":
+            return "Anda belum pilih sebarang minuman lagi! Sila beritahu minuman mana yang ingin disemak (cth. Kopi, Teh Tarik, atau Americano), atau buat pesanan dahulu untuk saya semak kalorinya!"
+        else:
+            return "You haven't selected a drink yet! Please let me know which drink you'd like to check (e.g., Kopi, Teh Tarik, or Americano), or order one and I'll assess its calories for you!"
+    else:
+        if lang == "zh":
+            return "您目前还没选择饮品哦！请先告诉我您想了解哪一杯，或者我可以为您推荐 100% 无乳糖、无麸质的纯茶与黑咖啡（如 Kopi O、Teh O、Americano）！"
+        elif lang == "bm":
+            return "Anda belum pilih sebarang minuman lagi! Sila pilih minuman dahulu, atau saya boleh syorkan pilihan 100% bebas laktosa & bebas gluten seperti Kopi O, Teh O, atau Americano!"
+        else:
+            return "You haven't selected a drink yet! Please tell me which drink you'd like to check, or I can recommend 100% lactose-free and gluten-free options like Kopi O, Teh O, or Americano!"
 
 
 # -------------------------------------------------------------
@@ -395,7 +635,7 @@ MAX_SESSIONS = 500
 ALLOWED_STATE_KEYS = {
     "status", "base_drink", "temperature", "sweetness_level", "milk_type",
     "temp_detail", "ice_level", "pending_slot", "price_rm", "calories",
-    "sugars_g", "caffeine_mg", "history"
+    "sugars_g", "caffeine_mg", "contains_lactose", "contains_gluten", "allergens_summary", "history"
 }
 sessions: Dict[str, Dict[str, Any]] = {}
 
@@ -712,7 +952,7 @@ def chat_endpoint(req: ChatRequest):
         re.search(r"\b(?:how\s+much|price|pricing|cost|harga|berapa(?:\s+ringgit)?)\b", t_low) or
         any(w in utterance for w in ["多少钱", "几块", "几钱", "价钱", "价格"])
     )
-    if is_price_inquiry and not re.search(r"\b(?:calorie|calories|kalori|sugar|gula|卡路里|热量)\b", t_low):
+    if is_price_inquiry and not re.search(r"\b(?:calorie|calories|kalori|sugar|gula|卡路里|热量|lactose|gluten|allergen|乳糖|麸质|过敏|高不高|胖不胖)\b", t_low):
         if extracted_slots.get("base_drink"):
             temp_state = dict(extracted_slots)
             if not temp_state.get("milk_type"):
@@ -738,45 +978,113 @@ def chat_endpoint(req: ChatRequest):
             "clean_text": c_text, "slots": extracted_slots, "state": state
         }
 
-    # 4. Health RAG query grounded on unified_coffee_kb.csv (Direct lookup if drink specified, no cart mutation)
-    is_calorie_inquiry = bool(re.search(r"\b(?:calorie|calories|kalori|khasiat|nutrisi|多少卡|卡路里|热量)\b", t_low))
-    has_health_question = bool(re.search(r"\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang|sihat|healthy|diet)\b", t_low) or "?" in utterance)
-    if (pred_intent == "health_query" and (has_health_question or is_calorie_inquiry)) or (is_calorie_inquiry and not was_awaiting_confirm):
-        if extracted_slots.get("base_drink") and not df_kb.empty:
-            b = extracted_slots["base_drink"]
-            cand = df_kb[
-                (df_kb["channel"].str.contains("Kopitiam", case=False, na=False)) &
-                (df_kb["drink_name"].str.contains(b, case=False, na=False))
-            ]
-            if not cand.empty:
-                if "milk_type" in extracted_slots and "milk_type" in cand.columns:
-                    cand_milk = cand[cand["milk_type"].astype(str).str.lower() == extracted_slots["milk_type"].lower()]
-                    if not cand_milk.empty:
-                        cand = cand_milk
-                if "temperature" in extracted_slots:
-                    cand_temp = cand[cand["temperature"].str.lower() == extracted_slots["temperature"].lower()]
-                    if not cand_temp.empty:
-                        cand = cand_temp
-                if "sweetness_level" in extracted_slots:
-                    cand_sweet = cand[cand["sweetness_level"].astype(str).str.lower() == extracted_slots["sweetness_level"].lower()]
-                    if not cand_sweet.empty:
-                        cand = cand_sweet
-                row = cand.iloc[0]
-                dname = row["drink_name"]
-                cal = int(row["calories"])
-                sug = row["sugars_g"]
-                caf = int(row["caffeine_mg"]) if pd.notnull(row["caffeine_mg"]) else 0
-                prc = float(row["price_rm"]) if pd.notnull(row["price_rm"]) else lookup_price_and_nutrition(extracted_slots)["price_rm"]
-                response = (
-                    f"{dname} 的营养与价格信息：约 {cal} kcal 热量、{sug:g}g 糖分、{caf}mg 咖啡因，单价 RM {prc:.2f}。"
-                    if is_zh else
-                    f"Maklumat nutrisi {dname}: Kira-kira {cal} kcal, {sug:g}g gula, {caf}mg kafein, harga RM {prc:.2f}."
-                )
+    # 4. Health, Calorie & Allergen RAG query grounded on unified_coffee_kb.csv (Direct lookup with 4-tier calorie evaluation and allergen check, no cart mutation)
+    is_allergen_inquiry = bool(re.search(r"(?:lactose|laktosa|gluten|allergen|allergens|allergi|alergi|alahan|alergik|allergic|allergy|intoleran|intolerant|intolerance|intoleransi|dairy|乳糖|麸质|过敏|乳糜泻|过敏原)", t_low))
+    is_subjective_calorie = bool(re.search(r"(?:高不高|胖不胖|会胖吗|容易胖吗|长胖|发胖|长肉|高吗|high\s*calori|is\s+it\s+high|fattening|make\s+me\s+fat|gain\s+weight|tinggi\s+kalori|bikin\s+gemuk|gemuk|kalori\s+tinggi|banyak\s+kalori)", t_low))
+    is_calorie_inquiry = bool(re.search(r"\b(?:calorie|calories|kalori|khasiat|nutrisi|多少卡|卡路里|热量|kcal)\b", t_low)) or is_subjective_calorie
+    has_health_question = bool(re.search(r"\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang|sihat|healthy|diet)\b", t_low) or "?" in utterance or "？" in utterance)
+
+    is_health_rag = (
+        is_allergen_inquiry or
+        is_subjective_calorie or
+        (is_calorie_inquiry and not was_awaiting_confirm) or
+        (pred_intent == "health_query" and (has_health_question or is_calorie_inquiry or is_allergen_inquiry))
+    )
+
+    if is_health_rag:
+        user_lang = detect_lang(utterance)
+        is_coref = bool(re.search(r"(?:这杯|这个|这款|当前这杯|刚点的|选的这杯|那杯|this\s+cup|this\s+drink|this\s+one|current\s+drink|my\s+drink|air\s+ni|cawan\s+ni|minuman\s+ni|air\s+ini|cawan\s+ini|minuman\s+ini|air\s+tu|cawan\s+tu)", t_low))
+
+        target_drink = None
+        for b_name in ["Milo Dinosaur", "Milo Godzilla", "Teh O Ais Limau", "Teh O Limau", "Kopi O Kosong", "Teh O Kosong", "White Coffee", "Milo", "Neslo", "Cham", "Kopi C", "Kopi O", "Kopi", "Teh C", "Teh O", "Teh Tarik", "Teh", "Americano"]:
+            if b_name.lower() in t_low:
+                target_drink = b_name
+                break
+
+        if not target_drink:
+            target_drink = extracted_slots.get("base_drink")
+            if target_drink == "Milo" and "dinosaur" in t_low:
+                target_drink = "Milo Dinosaur"
+            elif target_drink == "Teh" and "tarik" in t_low:
+                target_drink = "Teh Tarik"
+
+        target_milk = extracted_slots.get("milk_type")
+        target_temp = extracted_slots.get("temperature")
+        target_sweet = extracted_slots.get("sweetness_level")
+
+        if not target_drink and (is_coref or state.get("base_drink")):
+            if state.get("base_drink"):
+                target_drink = state["base_drink"]
+                if not target_milk:
+                    target_milk = state.get("milk_type")
+                if not target_temp:
+                    target_temp = state.get("temperature")
+                if not target_sweet:
+                    target_sweet = state.get("sweetness_level")
+
+        # Allergen inquiry
+        if is_allergen_inquiry:
+            if not target_drink:
+                if is_coref:
+                    response = get_no_drink_prompt("allergen", user_lang)
+                else:
+                    if re.search(r"lactose|laktosa|乳糖|dairy|susu", t_low):
+                        response = get_allergen_recommendation("lactose", user_lang)
+                    elif re.search(r"gluten|麸质", t_low):
+                        response = get_allergen_recommendation("gluten", user_lang)
+                    else:
+                        response = get_allergen_recommendation("all", user_lang)
                 return {
                     "response": response, "intent": "health_query", "model_intent": pred_intent,
                     "tone": detected_tone, "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
                 }
-        response = query_healthy_drinks_from_kb(is_zh)
+
+            temp_state = {"base_drink": target_drink, "milk_type": target_milk, "temperature": target_temp, "sweetness_level": target_sweet}
+            kb_info = lookup_price_and_nutrition(temp_state)
+            inquiry_type = "general"
+            if re.search(r"lactose|laktosa|乳糖|dairy|susu", t_low):
+                inquiry_type = "lactose"
+            elif re.search(r"gluten|麸质", t_low):
+                inquiry_type = "gluten"
+
+            dname = kb_info.get("display_name") or target_drink
+            response = get_drink_allergen_reply(
+                dname,
+                kb_info["contains_lactose"],
+                kb_info["contains_gluten"],
+                inquiry_type,
+                user_lang
+            )
+            return {
+                "response": response, "intent": "health_query", "model_intent": pred_intent,
+                "tone": detected_tone, "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
+            }
+
+        # Calorie inquiry
+        if is_calorie_inquiry:
+            if not target_drink:
+                if is_coref or is_subjective_calorie:
+                    response = get_no_drink_prompt("calorie", user_lang)
+                else:
+                    response = query_healthy_drinks_from_kb(user_lang)
+                return {
+                    "response": response, "intent": "health_query", "model_intent": pred_intent,
+                    "tone": detected_tone, "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
+                }
+
+            temp_state = {"base_drink": target_drink, "milk_type": target_milk, "temperature": target_temp, "sweetness_level": target_sweet}
+            kb_info = lookup_price_and_nutrition(temp_state)
+            cal = kb_info["calories"]
+            sug = kb_info["sugars_g"]
+            dname = kb_info.get("display_name") or target_drink
+            response = classify_calorie_tier(cal, dname, sug, user_lang)
+            return {
+                "response": response, "intent": "health_query", "model_intent": pred_intent,
+                "tone": detected_tone, "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
+            }
+
+        # General health query
+        response = query_healthy_drinks_from_kb(user_lang)
         return {
             "response": response, "intent": "health_query", "model_intent": pred_intent,
             "tone": detected_tone, "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
