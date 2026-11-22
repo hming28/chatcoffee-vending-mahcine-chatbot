@@ -843,10 +843,46 @@
       return { fixed, changed };
     }
 
+    const LEARNED_SLANG_KEY = 'chatcoffee_learned_slang_v1';
+    function getLearnedSlangMap() {
+      try {
+        const raw = localStorage.getItem(LEARNED_SLANG_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) { return {}; }
+    }
+    function saveLearnedSlangLocal(slang, meaning) {
+      const k = slang.trim().toLowerCase();
+      const v = meaning.trim().toLowerCase();
+      if (!k || !v || k === 'kau') return;
+      const map = getLearnedSlangMap();
+      map[k] = v;
+      try { localStorage.setItem(LEARNED_SLANG_KEY, JSON.stringify(map)); } catch (e) {}
+      try {
+        fetch('/api/learn_slang', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slang: k, meaning: v })
+        }).catch(() => {});
+      } catch (e) {}
+    }
+    function detectUserTone(text) {
+      const tLow = (text || '').toLowerCase();
+      if (/\b(?:cepat|urgent|rush|hurry|fast|quick|catch\s+(?:lrt|mrt|bus|train|flight)|late\s+already)\b/i.test(tLow) || ['赶时间', '快点', '快一点', '很赶', '来不及'].some(w => text.includes(w))) return 'Urgent';
+      if (/\b(?:wrong|salah|tak\s+faham|stupid|frust|kenapa\s+salah)\b/i.test(tLow) || ['不对', '错了', '听不懂', '搞错'].some(w => text.includes(w))) return 'Frustrated';
+      if (/\b(?:recommend|suggest|cadang|rekomen|tak\s+tau|first\s+time|apa\s+sedap|which\s+one)\b/i.test(tLow) || ['推荐', '什么好喝', '第一次', '不知道喝什么'].some(w => text.includes(w))) return 'Exploratory';
+      return 'Neutral';
+    }
+
     function preprocessRojakText(text) {
       if (!text || typeof text !== 'string') return '';
-      const slangMap = (typeof ROJAK_ML_MODEL !== 'undefined' && ROJAK_ML_MODEL.slang_dict) ? ROJAK_ML_MODEL.slang_dict : MANGLISH_DICT;
+      const learnedMap = getLearnedSlangMap();
+      const slangMap = Object.assign({}, (typeof ROJAK_ML_MODEL !== 'undefined' && ROJAK_ML_MODEL.slang_dict) ? ROJAK_ML_MODEL.slang_dict : MANGLISH_DICT, learnedMap);
       let t = text.toLowerCase();
+      // Expand multi-word learned slang phrases first
+      Object.keys(learnedMap).filter(k => k.includes(' ')).sort((a, b) => b.length - a.length).forEach(phrase => {
+        const esc = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        t = t.replace(new RegExp('(?<![a-z0-9])' + esc + '(?![a-z0-9])', 'g'), learnedMap[phrase]);
+      });
       t = t.split(/\s+/).map(tok => {
         if (tok === '__proto__' || tok === 'constructor' || tok === 'prototype') return tok;
         if (slangMap && Object.prototype.hasOwnProperty.call(slangMap, tok) && typeof slangMap[tok] === 'string') {
@@ -1088,8 +1124,8 @@
       const hasModifyCue = /\b(?:change|tukar|ganti|switch|instead|bukan|ubah|wait)\b/.test(tLow) || /[换改]/.test(utterance);
       const hasNewSlots = Boolean(slots.base_drink || slots.temperature || slots.sweetness_level || slots.milk_type || slots.ice_level);
       const isStrictConfirm =
-        /^(?:ok(?:ay)?|confirm(?:\s+order)?|yes|ya|yep|yeah|boleh|bayar|ngam|betul|sure|proceed|place\s+order|go\s+ahead)[\s!.,?]*$/i.test(tLow) ||
-        /^(?:好|好的|确认|确认下单|可以|没问题|下单)[\s！。!.]*$/.test(utterance.trim());
+        /^(?:(?:ok(?:ay)?|yes|ya|yep|yeah|sure|boleh|ngam|betul)[\s,，]+)*(?:ok(?:ay)?|confirm(?:\s+(?:order|it|please|lah))?|yes|ya|yep|yeah|boleh|bayar|ngam|betul|sure|proceed|place\s+order|go\s+ahead)[\s!.,?]*$/i.test(tLow) ||
+        /^(?:(?:好|好的|可以|没问题)[\s,，]*)*(?:好|好的|确认|确认下单|可以|没问题|下单)[\s！。!.,?]*$/.test(utterance.trim());
       if (state.status === 'AWAITING_CONFIRMATION' && isStrictConfirm && !hasModifyCue && !hasNewSlots) {
         return { intent: 'order_confirm', confidence: 1.0, is_ml: false, probabilities: {} };
       }
@@ -1511,8 +1547,23 @@
         activeScreen = 'home';
       }
       const tLow = utterance.toLowerCase().trim();
+      // 0. Persistent Human-in-the-Loop Slang Teaching (e.g., "teach: kopi beng = kopi peng")
+      const teachMatch = utterance.trim().match(/^(?:teach|learn|slang|教俚语|学习)\s*[:：]?\s*(.+?)\s*(?:=|->|=>|means|是)\s*(.+)$/i);
+      if (teachMatch) {
+        const newSlang = teachMatch[1].trim();
+        const newMeaning = teachMatch[2].trim();
+        saveLearnedSlangLocal(newSlang, newMeaning);
+        const lang = detectUtteranceLang(utterance, engineState.detected_lang || uiLang);
+        engineState.last_intent = 'learn_slang';
+        engineState.last_conf = 1.0;
+        return lang === 'zh'
+          ? `已永久学会新俚语：「${newSlang}」→「${newMeaning}」，下次点单立即生效！`
+          : `Got it boss! Permanently learned slang "${newSlang}" → "${newMeaning}" for future orders.`;
+      }
+      const detectedTone = detectUserTone(utterance);
+      engineState.detected_tone = detectedTone;
       const cleanUtt = preprocessRojakText(utterance);
-      const slots = extractDrinkSlots(utterance);
+      const slots = Object.assign({}, extractDrinkSlots(cleanUtt), extractDrinkSlots(utterance));
       const pred = predictIntent(utterance, slots, engineState);
       const intent = pred.intent;
 
@@ -1541,6 +1592,31 @@
         return triggerConfirmAndDispense(userLang);
       }
 
+      // 3.5 Price Query (prevent hijacking to health_query when user asks "how much / berapa")
+      const isPriceQuery =
+        (/\b(?:how\s+much|price|pricing|cost|harga|berapa(?:\s+ringgit)?)\b/i.test(tLow) || ['多少钱', '几块', '几钱', '价钱', '价格'].some(w => utterance.includes(w))) &&
+        !/\b(?:calorie|calories|kalori|sugar|gula|卡路里|热量)\b/i.test(tLow);
+      if (isPriceQuery) {
+        if (slots.base_drink) {
+          const match = KOPITIAM_KB.find(item =>
+            item.base === slots.base_drink &&
+            (!slots.milk_type || item.milk === slots.milk_type) &&
+            (!slots.temperature || item.temp === slots.temperature)
+          ) || KOPITIAM_KB.find(item =>
+            item.base === slots.base_drink &&
+            (!slots.temperature || item.temp === slots.temperature)
+          ) || KOPITIAM_KB.find(item => item.base === slots.base_drink);
+          if (match) {
+            if (userLang === 'zh') return `${match.name} 的单价是 RM ${match.price.toFixed(2)}（约 ${match.cal} kcal，${match.sugar}g 糖）。需要现在下单吗？`;
+            if (userLang === 'bm') return `Harga ${match.name} ialah RM ${match.price.toFixed(2)} (kira-kira ${match.cal} kcal, ${match.sugar}g gula). Nak order sekarang boss?`;
+            return `${match.name} is RM ${match.price.toFixed(2)} (approx. ${match.cal} kcal, ${match.sugar}g sugar). Would you like to order it?`;
+          }
+        }
+        return userLang === 'zh'
+          ? 'ChatCoffee 饮品价格介于 RM 3.20 – RM 5.80（如 Kopi O RM 3.20、Kopi C Peng RM 4.70、Cham Peng RM 5.00）。请问您想查询哪一杯？'
+          : 'ChatCoffee drinks range from RM 3.20 to RM 5.80 (e.g., Kopi O RM 3.20, Kopi C Peng RM 4.70, Cham Peng RM 5.00). Which drink would you like to check?';
+      }
+
       // 4. Pure Health & Calorie RAG (Direct nutrition response, without mutating cart slots or hijacking pending slot)
       const isCalorieQuery = intent === 'health_query' ||
         /\b(?:calorie|calories|kalori|nutrisi|gula|kafein|卡路里|多少卡|热量|含糖量)\b/i.test(tLow);
@@ -1549,8 +1625,13 @@
         if (slots.base_drink) {
           const match = KOPITIAM_KB.find(item =>
             item.base === slots.base_drink &&
+            (!slots.milk_type || item.milk === slots.milk_type) &&
             (!slots.temperature || item.temp === slots.temperature) &&
             (!slots.sweetness_level || item.sweet === slots.sweetness_level)
+          ) || KOPITIAM_KB.find(item =>
+            item.base === slots.base_drink &&
+            (!slots.milk_type || item.milk === slots.milk_type) &&
+            (!slots.temperature || item.temp === slots.temperature)
           ) || KOPITIAM_KB.find(item =>
             item.base === slots.base_drink &&
             (!slots.temperature || item.temp === slots.temperature)

@@ -76,6 +76,44 @@ if os.path.exists(SLANG_PATH):
                     slang_dict[k.lower()] = v.lower()
     print(f"[Preprocess] Loaded {len(slang_dict)} clean slang normalization rules")
 
+LEARNED_SLANG_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "learned_slang.json")
+learned_slang_dict: Dict[str, str] = {}
+if os.path.exists(LEARNED_SLANG_PATH):
+    try:
+        with open(LEARNED_SLANG_PATH, "r", encoding="utf-8") as f:
+            raw_learned = json.load(f)
+            if isinstance(raw_learned, dict):
+                for lk, lv in raw_learned.items():
+                    if isinstance(lv, str) and lk.strip():
+                        learned_slang_dict[lk.strip().lower()] = lv.strip().lower()
+                        slang_dict[lk.strip().lower()] = lv.strip().lower()
+        print(f"[HITL Learning] Loaded {len(learned_slang_dict)} persistent user-taught slang rules")
+    except Exception:
+        pass
+
+
+def save_learned_slang(slang: str, meaning: str) -> Dict[str, str]:
+    k = slang.strip().lower()
+    v = meaning.strip().lower()
+    if k and v and k != "kau":
+        learned_slang_dict[k] = v
+        slang_dict[k] = v
+        os.makedirs(os.path.dirname(LEARNED_SLANG_PATH), exist_ok=True)
+        with open(LEARNED_SLANG_PATH, "w", encoding="utf-8") as f:
+            json.dump(learned_slang_dict, f, ensure_ascii=False, indent=2)
+    return {"slang": k, "meaning": v}
+
+
+def detect_tone(text: str) -> str:
+    t_low = text.lower()
+    if re.search(r"\b(?:cepat|urgent|rush|hurry|fast|quick|catch\s+(?:lrt|mrt|bus|train|flight)|late\s+already)\b", t_low) or any(w in text for w in ["赶时间", "快点", "快一点", "很赶", "来不及"]):
+        return "Urgent"
+    if re.search(r"\b(?:wrong|salah|tak\s+faham|stupid|useless|annoying|frust|kenapa\s+salah)\b", t_low) or any(w in text for w in ["不对", "错了", "听不懂", "搞错"]):
+        return "Frustrated"
+    if re.search(r"\b(?:recommend|suggest|cadang|rekomen|tak\s+tau|first\s+time|apa\s+sedap|which\s+one)\b", t_low) or any(w in text for w in ["推荐", "什么好喝", "第一次", "不知道喝什么"]):
+        return "Exploratory"
+    return "Neutral"
+
 # Load Knowledge Base
 df_kb = pd.DataFrame()
 if os.path.exists(KB_PATH):
@@ -125,6 +163,9 @@ def clean_text(text: str) -> str:
     if not isinstance(text, str):
         return ""
     t = text.lower()
+    # Apply multi-word learned slang phrases first (longest match)
+    for phrase in sorted((k for k in learned_slang_dict if " " in k), key=len, reverse=True):
+        t = re.sub(r"(?<![a-z0-9])" + re.escape(phrase) + r"(?![a-z0-9])", learned_slang_dict[phrase], t)
     words = t.split()
     expanded = [slang_dict.get(w, w) for w in words]
     t = " ".join(expanded)
@@ -517,6 +558,32 @@ async def tts_get_endpoint(text: str, voice: Optional[str] = None, tone: Optiona
     return await tts_endpoint(TTSRequest(text=text, voice=voice, tone=tone))
 
 
+class SlangLearnRequest(BaseModel):
+    slang: str
+    meaning: str
+
+
+@app.get("/api/slang")
+def get_learned_slang_endpoint():
+    return {
+        "total_slang_rules": len(slang_dict),
+        "learned_count": len(learned_slang_dict),
+        "learned_slang": learned_slang_dict
+    }
+
+
+@app.post("/api/learn_slang")
+def learn_slang_endpoint(req: SlangLearnRequest):
+    if not req.slang.strip() or not req.meaning.strip():
+        return JSONResponse(status_code=400, content={"error": "Both slang and meaning are required"})
+    saved = save_learned_slang(req.slang, req.meaning)
+    return {
+        "status": "learned",
+        "rule": saved,
+        "learned_count": len(learned_slang_dict)
+    }
+
+
 @app.post("/api/predict_intent")
 def predict_intent_endpoint(req: ChatRequest):
     c_text = clean_text(req.utterance)
@@ -526,8 +593,9 @@ def predict_intent_endpoint(req: ChatRequest):
         "clean_text": c_text,
         "predicted_intent": pred,
         "confidence": conf,
+        "tone": detect_tone(req.utterance),
         "probabilities": prob_dict,
-        "slots": extract_slots(req.utterance)
+        "slots": extract_slots(c_text)
     }
 
 
@@ -561,9 +629,29 @@ def chat_endpoint(req: ChatRequest):
             "confidence": 0.0, "probabilities": {}, "clean_text": "", "slots": {}, "state": state
         }
 
+    # 0. Persistent Human-in-the-Loop Slang Teaching (e.g., "teach: kopi beng = kopi peng")
+    teach_match = re.match(r"^(?:teach|learn|slang|教俚语|学习)\s*[:：]?\s*(.+?)\s*(?:=|->|=>|means|是)\s*(.+)$", utterance, re.IGNORECASE)
+    if teach_match:
+        new_slang, new_meaning = teach_match.group(1).strip(), teach_match.group(2).strip()
+        save_learned_slang(new_slang, new_meaning)
+        response = (
+            f"已永久学会新俚语：「{new_slang}」→「{new_meaning}」（已保存至 learned_slang.json，下次点单立即生效）。"
+            if is_zh else
+            f"Got it boss! Permanently learned slang '{new_slang}' -> '{new_meaning}' (saved to learned_slang.json for future orders)."
+        )
+        return {
+            "response": response, "intent": "learn_slang", "model_intent": "learn_slang",
+            "tone": "Neutral", "confidence": 1.0, "probabilities": {}, "clean_text": utterance.lower(),
+            "slots": {}, "state": state
+        }
+
+    detected_tone = detect_tone(utterance)
     c_text = clean_text(utterance)
     pred_intent, conf, prob_dict = predict_intent_ml(c_text)
-    extracted_slots = extract_slots(utterance)
+    # Extract slots from both raw utterance and learned-slang normalized text
+    extracted_slots = extract_slots(c_text)
+    for sk, sv in extract_slots(utterance).items():
+        extracted_slots.setdefault(sk, sv)
     was_awaiting_confirm = state.get("status") == "AWAITING_CONFIRMATION"
 
     # 1. Single-cup vending machine limit
@@ -600,8 +688,12 @@ def chat_endpoint(req: ChatRequest):
     # 3. Strict confirmation check (ONLY when already awaiting confirmation from a previous turn)
     has_modify_cue = bool(re.search(r"\b(?:change|tukar|ganti|switch|instead|bukan|ubah|wait)\b", t_low) or re.search(r"[换改]", utterance))
     is_strict_confirm = bool(
-        re.match(r"^(?:ok(?:ay)?|confirm(?:\s+order)?|yes|ya|yep|yeah|boleh|bayar|ngam|betul|sure|proceed)[\s!.,?]*$", t_low) or
-        re.match(r"^(?:好|好的|确认|确认下单|可以|没问题|下单)[\s！。!.]*$", utterance)
+        re.match(
+            r"^(?:(?:ok(?:ay)?|yes|ya|yep|yeah|sure|boleh|ngam|betul)[\s,，]+)*"
+            r"(?:ok(?:ay)?|confirm(?:\s+(?:order|it|please|lah))?|yes|ya|yep|yeah|boleh|bayar|ngam|betul|sure|proceed|place\s+order|go\s+ahead)[\s!.,?]*$",
+            t_low
+        ) or
+        re.match(r"^(?:(?:好|好的|可以|没问题)[\s,，]*)*(?:好|好的|确认|确认下单|可以|没问题|下单)[\s！。!.,?]*$", utterance)
     )
     if was_awaiting_confirm and is_strict_confirm and not has_modify_cue and not extracted_slots:
         state["status"] = "DISPENSING"
@@ -615,6 +707,37 @@ def chat_endpoint(req: ChatRequest):
             "confidence": 1.0, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
         }
 
+    # 3.5 Price Inquiry (prevent hijacking to health_query when asking "how much / berapa")
+    is_price_inquiry = bool(
+        re.search(r"\b(?:how\s+much|price|pricing|cost|harga|berapa(?:\s+ringgit)?)\b", t_low) or
+        any(w in utterance for w in ["多少钱", "几块", "几钱", "价钱", "价格"])
+    )
+    if is_price_inquiry and not re.search(r"\b(?:calorie|calories|kalori|sugar|gula|卡路里|热量)\b", t_low):
+        if extracted_slots.get("base_drink"):
+            temp_state = dict(extracted_slots)
+            if not temp_state.get("milk_type"):
+                temp_state["milk_type"] = "None" if temp_state["base_drink"] in ("Teh O Limau", "Americano") else "Condensed Milk"
+            kb_info = lookup_price_and_nutrition(temp_state)
+            milk_tag = " O" if temp_state.get("milk_type") == "None" and temp_state["base_drink"] in ("Kopi", "Teh", "Cham", "Milo") else (" C" if temp_state.get("milk_type") == "Evaporated Milk" else "")
+            temp_tag = " Peng (Iced)" if temp_state.get("temperature") == "Iced" else (" Hot" if temp_state.get("temperature") == "Hot" else "")
+            label = f"{temp_state['base_drink']}{milk_tag}{temp_tag}".strip()
+            response = (
+                f"{label} 的价格是 RM {kb_info['price_rm']:.2f}（约 {kb_info['calories']} kcal，{kb_info['sugars_g']:g}g 糖）。需要现在下单吗？"
+                if is_zh else
+                f"Harga untuk {label} ialah RM {kb_info['price_rm']:.2f} (approx. {kb_info['calories']} kcal, {kb_info['sugars_g']:g}g sugar). Want to order this boss?"
+            )
+        else:
+            response = (
+                "ChatCoffee 传统饮品价格介于 RM 3.20 – RM 5.80（如 Kopi O RM 3.20、Kopi C Peng RM 4.70、Cham Peng RM 5.00）。请问您想查询哪一杯？"
+                if is_zh else
+                "Harga minuman ChatCoffee bermula dari RM 3.20 hingga RM 5.80 (cth: Kopi O RM 3.20, Kopi C Peng RM 4.70, Cham Peng RM 5.00). Nak check minuman mana boss?"
+            )
+        return {
+            "response": response, "intent": "price_query", "model_intent": pred_intent,
+            "tone": detected_tone, "confidence": conf, "probabilities": prob_dict,
+            "clean_text": c_text, "slots": extracted_slots, "state": state
+        }
+
     # 4. Health RAG query grounded on unified_coffee_kb.csv (Direct lookup if drink specified, no cart mutation)
     is_calorie_inquiry = bool(re.search(r"\b(?:calorie|calories|kalori|khasiat|nutrisi|多少卡|卡路里|热量)\b", t_low))
     has_health_question = bool(re.search(r"\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang|sihat|healthy|diet)\b", t_low) or "?" in utterance)
@@ -626,28 +749,37 @@ def chat_endpoint(req: ChatRequest):
                 (df_kb["drink_name"].str.contains(b, case=False, na=False))
             ]
             if not cand.empty:
+                if "milk_type" in extracted_slots and "milk_type" in cand.columns:
+                    cand_milk = cand[cand["milk_type"].astype(str).str.lower() == extracted_slots["milk_type"].lower()]
+                    if not cand_milk.empty:
+                        cand = cand_milk
                 if "temperature" in extracted_slots:
                     cand_temp = cand[cand["temperature"].str.lower() == extracted_slots["temperature"].lower()]
                     if not cand_temp.empty:
                         cand = cand_temp
+                if "sweetness_level" in extracted_slots:
+                    cand_sweet = cand[cand["sweetness_level"].astype(str).str.lower() == extracted_slots["sweetness_level"].lower()]
+                    if not cand_sweet.empty:
+                        cand = cand_sweet
                 row = cand.iloc[0]
                 dname = row["drink_name"]
                 cal = int(row["calories"])
                 sug = row["sugars_g"]
                 caf = int(row["caffeine_mg"]) if pd.notnull(row["caffeine_mg"]) else 0
+                prc = float(row["price_rm"]) if pd.notnull(row["price_rm"]) else lookup_price_and_nutrition(extracted_slots)["price_rm"]
                 response = (
-                    f"{dname} 的营养信息：约 {cal} kcal 热量、{sug:g}g 糖分及 {caf}mg 咖啡因。"
+                    f"{dname} 的营养与价格信息：约 {cal} kcal 热量、{sug:g}g 糖分、{caf}mg 咖啡因，单价 RM {prc:.2f}。"
                     if is_zh else
-                    f"Maklumat nutrisi {dname}: Kira-kira {cal} kcal, {sug:g}g gula dan {caf}mg kafein."
+                    f"Maklumat nutrisi {dname}: Kira-kira {cal} kcal, {sug:g}g gula, {caf}mg kafein, harga RM {prc:.2f}."
                 )
                 return {
                     "response": response, "intent": "health_query", "model_intent": pred_intent,
-                    "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
+                    "tone": detected_tone, "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
                 }
         response = query_healthy_drinks_from_kb(is_zh)
         return {
             "response": response, "intent": "health_query", "model_intent": pred_intent,
-            "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
+            "tone": detected_tone, "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
         }
 
     # Low-confidence out-of-domain rejection
@@ -716,16 +848,24 @@ def chat_endpoint(req: ChatRequest):
         drink_name = f"{state['base_drink']} {state.get('temperature', '')}".strip()
         sweet = state.get("sweetness_level", "Normal")
         milk = state.get("milk_type", "Condensed Milk")
-        response = (
-            f"好的！一杯 {drink_name}（{sweet}，{milk}）。总共 RM {kb_info['price_rm']:.2f}。请问确认下单吗？（请回答 OK / Confirm）"
-            if is_zh else
-            f"Beres boss! Satu {drink_name} ({sweet}, {milk}). Total RM {kb_info['price_rm']:.2f}. Nak confirm order sekarang? (Jawab Confirm / Boleh)"
-        )
+        if detected_tone == "Urgent":
+            response = (
+                f"⚡ 极速模式：{drink_name}（{sweet}，{milk}），RM {kb_info['price_rm']:.2f}。说「确认」立刻出杯！"
+                if is_zh else
+                f"⚡ Express mode boss! {drink_name} ({sweet}, {milk}), RM {kb_info['price_rm']:.2f}. Say Confirm to brew immediately!"
+            )
+        else:
+            response = (
+                f"好的！一杯 {drink_name}（{sweet}，{milk}）。总共 RM {kb_info['price_rm']:.2f}。请问确认下单吗？（请回答 OK / Confirm）"
+                if is_zh else
+                f"Beres boss! Satu {drink_name} ({sweet}, {milk}). Total RM {kb_info['price_rm']:.2f}. Nak confirm order sekarang? (Jawab Confirm / Boleh)"
+            )
 
     return {
         "response": response,
         "intent": pred_intent,
         "model_name": model_name_str,
+        "tone": detected_tone,
         "confidence": conf,
         "probabilities": prob_dict,
         "clean_text": c_text,

@@ -76,8 +76,8 @@ If you want to run ChatCoffee locally on your computer:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/hming28/chatcoffee-vendine-mahcine-chatbot.git
-cd chatcoffee-vendine-mahcine-chatbot
+git clone https://github.com/hming28/chatcoffee-vending-machine-chatbot.git
+cd chatcoffee-vending-machine-chatbot
 ```
 
 ### 2. Install Dependencies
@@ -107,6 +107,8 @@ The FastAPI backend exposes the following RESTful endpoints:
 | `POST` | `/api/chat` | End-to-end multi-turn conversational dialogue turn |
 | `POST` | `/api/tts` | Neural speech synthesis endpoint |
 | `POST` | `/api/transcribe` | Audio file transcription endpoint |
+| `POST` | `/api/learn_slang` | Persistent Human-in-the-Loop slang learning (`learned_slang.json`) |
+| `GET` | `/api/slang` | Inspect active and user-taught slang normalization rules |
 
 ---
 
