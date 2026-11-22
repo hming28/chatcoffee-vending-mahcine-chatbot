@@ -1447,7 +1447,8 @@
         'tanpa', 'gula', 'susu', 'cair', 'pekat', 'batal', 'semula', 'bayar', 'boleh', 'sedap', 'minum',
         'cawan', 'tambah', 'bancuh', 'tolong', 'bagi', 'saya', 'sihat', 'berapa', 'apa', 'ini', 'sedikit',
         'teh', 'kopi', 'cham', 'air', 'ni', 'tu', 'ke', 'tinggi', 'rendah', 'kalori', 'gemuk', 'bikin',
-        'laktosa', 'alahan', 'alergen', 'alergi', 'intoleran', 'intoleransi', 'ada', 'lah', 'ia'
+        'laktosa', 'alahan', 'alergen', 'alergi', 'intoleran', 'intoleransi', 'ada', 'lah', 'ia',
+        'pilihan', 'senarai', 'cadang', 'cadangan', 'saran', 'sarankan', 'minuman'
       ];
       let bmHits = 0;
       for (const w of bmWords) {
@@ -1710,16 +1711,37 @@
       }
 
       // 4. Pure Health, Calorie & Allergen RAG (Direct nutrition response, with coreference resolution and 4-tier calorie evaluation, without mutating cart slots or hijacking pending slot)
-      const isAllergenInquiry = /(?:lactose|laktosa|gluten|allergen|allergens|allergi|alergi|alahan|alergik|allergic|allergy|intoleran|intolerant|intolerance|intoleransi|dairy|乳糖|麸质|过敏|乳糜泻|过敏原)/i.test(tLow);
-      const isSubjectiveCalorie = /(?:高不高|胖不胖|会胖吗|容易胖吗|长胖|发胖|长肉|高吗|high\s*calori|is\s+it\s+high|fattening|make\s+me\s+fat|gain\s+weight|tinggi\s+kalori|bikin\s+gemuk|gemuk|kalori\s+tinggi|banyak\s+kalori)/i.test(tLow);
-      const isCalorieQuery = intent === 'health_query' ||
-        /\b(?:calorie|calories|kalori|nutrisi|gula|kafein|卡路里|多少卡|热量|含糖量|kcal)\b/i.test(tLow) ||
-        isSubjectiveCalorie;
-      const isHealthQuestion = /\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang|sihat|healthy|diet)\b/i.test(tLow) || utterance.includes('?') || utterance.includes('？');
+      const isAllergenInquiry =
+        /(?:lactose|laktosa|gluten|allergen|allergens|allergi|alergi|alahan|alergik|allergic|allergy|intoleran|intolerant|intolerance|intoleransi|dairy|celiac)/i.test(tLow) ||
+        ['乳糖', '麸质', '过敏', '乳糜泻', '过敏原', '奶制品'].some(w => utterance.includes(w));
+      const isSubjectiveCalorie =
+        /\b(?:high\s*calori\w*|is\s+it\s+high|fattening|make\s+me\s+fat|gain\s+weight|tinggi\s+kalori|bikin\s+gemuk|gemuk|kalori\s+tinggi|banyak\s+kalori)\b/i.test(tLow) ||
+        ['高不高', '胖不胖', '会胖吗', '容易胖吗', '长胖', '发胖', '长肉', '高吗', '会发胖', '会长胖'].some(w => utterance.includes(w));
+      const isCalorieQuery =
+        intent === 'health_query' ||
+        isSubjectiveCalorie ||
+        /\b(?:calorie|calories|kalori|khasiat|nutrisi|gula|kafein|kcal|low\s*calori\w*)\b/i.test(tLow) ||
+        ['卡路里', '热量', '多少卡', '几卡', '含糖量', '低卡', '低热量'].some(w => utterance.includes(w));
+      const isGeneralHealth =
+        /\b(?:healthy|health|diet|sihat|rendah\s+kalori)\b/i.test(tLow) ||
+        ['健康', '减脂', '减肥', '控糖', '养生'].some(w => utterance.includes(w));
+      const isHealthQuestion =
+        /\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang)\b/i.test(tLow) ||
+        utterance.includes('?') || utterance.includes('？');
 
       const isAwaitingConfirm = engineState.status === 'AWAITING_CONFIRMATION';
-      if (isAllergenInquiry || isSubjectiveCalorie || (isCalorieQuery && !isAwaitingConfirm) || (intent === 'health_query' && (isHealthQuestion || isCalorieQuery || isAllergenInquiry))) {
+      if (
+        isAllergenInquiry ||
+        isSubjectiveCalorie ||
+        isGeneralHealth ||
+        (isCalorieQuery && !isAwaitingConfirm) ||
+        (intent === 'health_query' && (isHealthQuestion || isCalorieQuery || isAllergenInquiry || isGeneralHealth))
+      ) {
         const isCoref = /(?:这杯|这个|这款|当前这杯|刚点的|选的这杯|那杯|this\s+cup|this\s+drink|this\s+one|current\s+drink|my\s+drink|air\s+ni|cawan\s+ni|minuman\s+ni|air\s+ini|cawan\s+ini|minuman\s+ini|air\s+tu|cawan\s+tu)/i.test(tLow);
+        const isRecommendationQuery =
+          /\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|suggestion|cadang|cadangan|saran|sarankan|pilihan|senarai|list|tunjuk|options?|choices?|any|drinks?)\b/i.test(tLow) ||
+          /\b(?:nak|boleh|apa)\s+minum\s+apa\b|\bminum\s+apa\b|\bapa\s+boleh\s+minum\b|\bwhat\s+(?:can|should|to)\s+drink\b/i.test(tLow) ||
+          ['推荐', '介绍', '建议', '有什么', '有哪些', '能喝什么', '可以喝什么', '喝什么', '什么好喝', '哪些可以喝', '有什么喝', '选择'].some(w => utterance.includes(w));
 
         let targetDrink = null;
         const drinkNames = ["Milo Dinosaur", "Milo Godzilla", "Teh O Ais Limau", "Teh O Limau", "Kopi O Kosong", "Teh O Kosong", "White Coffee", "Milo", "Neslo", "Cham", "Kopi C", "Kopi O", "Kopi", "Teh C", "Teh O", "Teh Tarik", "Teh", "Americano"];
@@ -1739,8 +1761,6 @@
         let targetTemp = slots.temperature;
         let targetSweet = slots.sweetness_level;
 
-        const isRecommendationQuery = /\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang|pilihan|senarai|list|tunjuk|推荐|介绍|有(?:什么|哪些)|有什么)\b/i.test(tLow);
-
         if (!targetDrink && (isCoref || (!isRecommendationQuery && engineState.base_drink))) {
           if (engineState.base_drink) {
             targetDrink = engineState.base_drink;
@@ -1756,9 +1776,9 @@
             if (isCoref) {
               return getNoDrinkPrompt('allergen', userLang);
             } else {
-              if (/(?:lactose|laktosa|乳糖|dairy|susu)/i.test(tLow)) {
+              if (/(?:lactose|laktosa|dairy|susu)/i.test(tLow) || ['乳糖', '无奶'].some(w => utterance.includes(w))) {
                 return getAllergenRecommendation('lactose', userLang);
-              } else if (/(?:gluten|麸质)/i.test(tLow)) {
+              } else if (/(?:gluten|barli)/i.test(tLow) || utterance.includes('麸质')) {
                 return getAllergenRecommendation('gluten', userLang);
               } else {
                 return getAllergenRecommendation('all', userLang);
@@ -1796,9 +1816,9 @@
           }
 
           let inquiryType = 'general';
-          if (/(?:lactose|laktosa|乳糖|dairy|susu)/i.test(tLow)) {
+          if (/(?:lactose|laktosa|dairy|susu)/i.test(tLow) || ['乳糖', '牛奶'].some(w => utterance.includes(w))) {
             inquiryType = 'lactose';
-          } else if (/(?:gluten|麸质)/i.test(tLow)) {
+          } else if (/(?:gluten|barli)/i.test(tLow) || utterance.includes('麸质')) {
             inquiryType = 'gluten';
           }
 

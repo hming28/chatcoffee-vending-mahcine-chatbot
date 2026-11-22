@@ -352,23 +352,79 @@ def lookup_price_and_nutrition(state: Dict[str, Any]) -> Dict[str, Any]:
 
     # Candidate name resolution for Kopitiam drink combos
     candidate_names = []
+    is_iced = (temp == "Iced")
     if base in ("Kopi", "Teh", "Cham", "Milo"):
         if milk == "None":
-            if sweet == "Zero Sugar":
-                candidate_names.append(f"{base} O Kosong")
-            elif sweet == "Less Sugar":
-                candidate_names.append(f"{base} O Siew Dai")
-            candidate_names.append(f"{base} O")
+            if is_iced:
+                if sweet == "Zero Sugar":
+                    candidate_names.append(f"{base} O Kosong Peng")
+                    candidate_names.append(f"{base} O Peng Kosong")
+                elif sweet == "Less Sugar":
+                    candidate_names.append(f"{base} O Peng Siew Dai")
+                    candidate_names.append(f"{base} O Siew Dai")
+                candidate_names.append(f"{base} O Peng")
+            else:
+                if sweet == "Zero Sugar":
+                    candidate_names.append(f"{base} O Kosong")
+                elif sweet == "Less Sugar":
+                    candidate_names.append(f"{base} O Siew Dai")
+                candidate_names.append(f"{base} O")
         elif milk == "Evaporated Milk":
-            if sweet == "Zero Sugar":
-                candidate_names.append(f"{base} C Kosong")
-            elif sweet == "Less Sugar":
-                candidate_names.append(f"{base} C Siew Dai")
-            candidate_names.append(f"{base} C")
-        elif sweet == "Zero Sugar":
-            candidate_names.append(f"{base} Kosong")
-        elif sweet == "Less Sugar":
-            candidate_names.append(f"{base} Siew Dai")
+            if is_iced:
+                if sweet == "Zero Sugar":
+                    candidate_names.append(f"{base} C Peng Kosong")
+                    candidate_names.append(f"{base} C Kosong")
+                elif sweet == "Less Sugar":
+                    candidate_names.append(f"{base} C Peng Siew Dai")
+                    candidate_names.append(f"{base} C Siew Dai")
+                candidate_names.append(f"{base} C Peng")
+            else:
+                if sweet == "Zero Sugar":
+                    candidate_names.append(f"{base} C Kosong")
+                elif sweet == "Less Sugar":
+                    candidate_names.append(f"{base} C Siew Dai")
+                candidate_names.append(f"{base} C")
+        else:
+            if is_iced:
+                if sweet == "Less Sugar":
+                    candidate_names.append(f"{base} Peng Siew Dai")
+                candidate_names.append(f"{base} Peng")
+            else:
+                if sweet == "Zero Sugar":
+                    candidate_names.append(f"{base} Kosong")
+                elif sweet == "Less Sugar":
+                    candidate_names.append(f"{base} Siew Dai")
+    elif base == "Teh Tarik":
+        if is_iced:
+            candidate_names.append("Teh Tarik Peng")
+        else:
+            candidate_names.append("Teh Tarik")
+    elif base == "White Coffee":
+        if is_iced:
+            if sweet == "Less Sugar":
+                candidate_names.append("White Coffee Peng Siew Dai")
+            candidate_names.append("White Coffee Peng")
+        else:
+            if sweet == "Less Sugar":
+                candidate_names.append("White Coffee Siew Dai")
+            elif sweet == "Zero Sugar":
+                candidate_names.append("White Coffee Kosong")
+            candidate_names.append("White Coffee")
+    elif base == "Teh O Limau":
+        if is_iced:
+            if sweet == "Less Sugar":
+                candidate_names.append("Teh O Ais Limau Less Sugar")
+            elif sweet == "Zero Sugar":
+                candidate_names.append("Teh O Ais Limau Kosong")
+            candidate_names.append("Teh O Ais Limau")
+            candidate_names.append("Teh O ice limau")
+        else:
+            candidate_names.append("Teh O Limau Panas")
+    elif base == "Americano":
+        if is_iced:
+            candidate_names.append("Iced Americano")
+        else:
+            candidate_names.append("Hot Americano")
     candidate_names.append(base)
 
     if not df_kb.empty:
@@ -393,7 +449,7 @@ def lookup_price_and_nutrition(state: Dict[str, Any]) -> Dict[str, Any]:
             if not s_sub.empty:
                 sub = s_sub
         if milk:
-            m_sub = sub[sub["milk_type"].astype(str).str.lower() == milk.lower()]
+            m_sub = sub[sub["milk_type"].fillna("None").astype(str).str.lower() == milk.lower()]
             if not m_sub.empty:
                 sub = m_sub
         if not sub.empty:
@@ -457,18 +513,24 @@ def detect_lang(text: str) -> str:
         "nak", "mau", "satu", "dua", "tiga", "panas", "sejuk", "ais", "kurang", "manis",
         "tak", "xnak", "taknak", "tanpa", "gula", "susu", "cair", "pekat", "batal", "semula",
         "bayar", "boleh", "sedap", "minum", "cawan", "tambah", "bancuh", "tolong", "bagi",
-        "saya", "sihat", "berapa", "apa", "ini", "tu", "ni", "ke", "lah", "ia", "ada",
-        "laktosa", "alahan", "alergen", "intoleransi", "tinggi", "rendah", "gemuk", "bikin"
+        "saya", "sihat", "berapa", "apa", "ini", "tu", "ni", "ke", "lah", "ia", "ada", "air",
+        "laktosa", "alahan", "alergen", "intoleransi", "tinggi", "rendah", "gemuk", "bikin",
+        "pilihan", "senarai", "cadang", "cadangan", "saran", "sarankan", "sedikit", "minuman"
     ]
     en_words = [
-        "the", "is", "this", "cup", "drink", "high", "calorie", "calories", "fattening", "make",
+        "the", "is", "this", "cup", "drink", "drinks", "high", "calorie", "calories", "fattening", "make",
         "gain", "weight", "what", "which", "how", "much", "does", "have", "contain", "contains",
         "lactose", "gluten", "allergy", "allergic", "allergen", "allergens", "intolerant",
-        "intolerance", "safe", "recommend", "healthy", "diet", "free"
+        "intolerance", "safe", "recommend", "recommendation", "suggest", "healthy", "diet", "free",
+        "any", "options", "choices"
     ]
     bm_score = sum(1 for w in bm_words if re.search(r"\b" + re.escape(w) + r"\b", t_low))
     en_score = sum(1 for w in en_words if re.search(r"\b" + re.escape(w) + r"\b", t_low))
     if bm_score > en_score and bm_score > 0:
+        return "bm"
+    if en_score > bm_score and en_score > 0:
+        return "en"
+    if bm_score > 0:
         return "bm"
     if en_score > 0:
         return "en"
@@ -979,21 +1041,46 @@ def chat_endpoint(req: ChatRequest):
         }
 
     # 4. Health, Calorie & Allergen RAG query grounded on unified_coffee_kb.csv (Direct lookup with 4-tier calorie evaluation and allergen check, no cart mutation)
-    is_allergen_inquiry = bool(re.search(r"(?:lactose|laktosa|gluten|allergen|allergens|allergi|alergi|alahan|alergik|allergic|allergy|intoleran|intolerant|intolerance|intoleransi|dairy|乳糖|麸质|过敏|乳糜泻|过敏原)", t_low))
-    is_subjective_calorie = bool(re.search(r"(?:高不高|胖不胖|会胖吗|容易胖吗|长胖|发胖|长肉|高吗|high\s*calori|is\s+it\s+high|fattening|make\s+me\s+fat|gain\s+weight|tinggi\s+kalori|bikin\s+gemuk|gemuk|kalori\s+tinggi|banyak\s+kalori)", t_low))
-    is_calorie_inquiry = bool(re.search(r"\b(?:calorie|calories|kalori|khasiat|nutrisi|多少卡|卡路里|热量|kcal)\b", t_low)) or is_subjective_calorie
-    has_health_question = bool(re.search(r"\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang|sihat|healthy|diet)\b", t_low) or "?" in utterance or "？" in utterance)
+    is_allergen_inquiry = bool(
+        re.search(r"\b(?:lactose|laktosa|gluten|allergen|allergens|allergi|alergi|alahan|alergik|allergic|allergy|intoleran|intolerant|intolerance|intoleransi|dairy|celiac)\b", t_low) or
+        any(w in utterance for w in ["乳糖", "麸质", "过敏", "乳糜泻", "过敏原", "奶制品"])
+    )
+    is_subjective_calorie = bool(
+        re.search(r"\b(?:high\s*calori\w*|is\s+it\s+high|fattening|make\s+me\s+fat|gain\s+weight|tinggi\s+kalori|bikin\s+gemuk|gemuk|kalori\s+tinggi|banyak\s+kalori)\b", t_low) or
+        any(w in utterance for w in ["高不高", "胖不胖", "会胖吗", "容易胖吗", "长胖", "发胖", "长肉", "高吗", "会发胖", "会长胖"])
+    )
+    is_calorie_inquiry = bool(
+        is_subjective_calorie or
+        re.search(r"\b(?:calorie|calories|kalori|khasiat|nutrisi|kcal|low\s*calori\w*)\b", t_low) or
+        any(w in utterance for w in ["卡路里", "热量", "多少卡", "几卡", "含糖量", "低卡", "低热量"])
+    )
+    is_general_health = bool(
+        re.search(r"\b(?:healthy|health|diet|sihat|rendah\s+kalori)\b", t_low) or
+        any(w in utterance for w in ["健康", "减脂", "减肥", "控糖", "养生"])
+    )
+    has_health_question = bool(
+        re.search(r"\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang)\b", t_low) or
+        "?" in utterance or "？" in utterance
+    )
 
     is_health_rag = (
         is_allergen_inquiry or
         is_subjective_calorie or
+        is_general_health or
         (is_calorie_inquiry and not was_awaiting_confirm) or
-        (pred_intent == "health_query" and (has_health_question or is_calorie_inquiry or is_allergen_inquiry))
+        (pred_intent == "health_query" and (has_health_question or is_calorie_inquiry or is_allergen_inquiry or is_general_health))
     )
 
     if is_health_rag:
         user_lang = detect_lang(utterance)
-        is_coref = bool(re.search(r"(?:这杯|这个|这款|当前这杯|刚点的|选的这杯|那杯|this\s+cup|this\s+drink|this\s+one|current\s+drink|my\s+drink|air\s+ni|cawan\s+ni|minuman\s+ni|air\s+ini|cawan\s+ini|minuman\s+ini|air\s+tu|cawan\s+tu)", t_low))
+        is_coref = bool(
+            re.search(r"(?:这杯|这个|这款|当前这杯|刚点的|选的这杯|那杯|this\s+cup|this\s+drink|this\s+one|current\s+drink|my\s+drink|air\s+ni|cawan\s+ni|minuman\s+ni|air\s+ini|cawan\s+ini|minuman\s+ini|air\s+tu|cawan\s+tu)", t_low)
+        )
+        is_recommendation_query = bool(
+            re.search(r"\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|suggestion|cadang|cadangan|saran|sarankan|pilihan|senarai|list|tunjuk|options?|choices?|any|drinks?)\b", t_low) or
+            re.search(r"\b(?:nak|boleh|apa)\s+minum\s+apa\b|\bminum\s+apa\b|\bapa\s+boleh\s+minum\b|\bwhat\s+(?:can|should|to)\s+drink\b", t_low) or
+            any(w in utterance for w in ["推荐", "介绍", "建议", "有什么", "有哪些", "能喝什么", "可以喝什么", "喝什么", "什么好喝", "哪些可以喝", "有什么喝", "选择"])
+        )
 
         target_drink = None
         for b_name in ["Milo Dinosaur", "Milo Godzilla", "Teh O Ais Limau", "Teh O Limau", "Kopi O Kosong", "Teh O Kosong", "White Coffee", "Milo", "Neslo", "Cham", "Kopi C", "Kopi O", "Kopi", "Teh C", "Teh O", "Teh Tarik", "Teh", "Americano"]:
@@ -1012,7 +1099,7 @@ def chat_endpoint(req: ChatRequest):
         target_temp = extracted_slots.get("temperature")
         target_sweet = extracted_slots.get("sweetness_level")
 
-        if not target_drink and (is_coref or state.get("base_drink")):
+        if not target_drink and (is_coref or (state.get("base_drink") and not is_recommendation_query)):
             if state.get("base_drink"):
                 target_drink = state["base_drink"]
                 if not target_milk:
@@ -1028,9 +1115,9 @@ def chat_endpoint(req: ChatRequest):
                 if is_coref:
                     response = get_no_drink_prompt("allergen", user_lang)
                 else:
-                    if re.search(r"lactose|laktosa|乳糖|dairy|susu", t_low):
+                    if re.search(r"lactose|laktosa|dairy|susu", t_low) or any(w in utterance for w in ["乳糖", "无奶"]):
                         response = get_allergen_recommendation("lactose", user_lang)
-                    elif re.search(r"gluten|麸质", t_low):
+                    elif re.search(r"gluten|barli", t_low) or "麸质" in utterance:
                         response = get_allergen_recommendation("gluten", user_lang)
                     else:
                         response = get_allergen_recommendation("all", user_lang)
@@ -1042,9 +1129,9 @@ def chat_endpoint(req: ChatRequest):
             temp_state = {"base_drink": target_drink, "milk_type": target_milk, "temperature": target_temp, "sweetness_level": target_sweet}
             kb_info = lookup_price_and_nutrition(temp_state)
             inquiry_type = "general"
-            if re.search(r"lactose|laktosa|乳糖|dairy|susu", t_low):
+            if re.search(r"lactose|laktosa|dairy|susu", t_low) or any(w in utterance for w in ["乳糖", "牛奶"]):
                 inquiry_type = "lactose"
-            elif re.search(r"gluten|麸质", t_low):
+            elif re.search(r"gluten|barli", t_low) or "麸质" in utterance:
                 inquiry_type = "gluten"
 
             dname = kb_info.get("display_name") or target_drink
