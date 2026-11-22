@@ -45,7 +45,7 @@ When you visit **[chatcoffee.onrender.com](https://chatcoffee.onrender.com/)**, 
 - 🧠 **Supervised Machine Learning Intent Classifier**: Zero rule-based guessing. Powered by a champion **Logistic Regression with TF-IDF (1-2 N-Gram)** model trained on 850 curated gold instances (100% test accuracy across 4 balanced intents).
 - 🎯 **Dual-Script Named Entity Recognition (NER)**: Extracts beverage type, temperature (Hot/Cold), sweetness level (Kosong, Siu Dai, Normal), milk type (Condensed, Evaporated, None), and dining option (Dine In / Tapau).
 - 🔄 **Stateful Dialogue State Tracking (DST)**: Proactively gathers missing attributes and robustly handles mid-order human corrections (grounded in the ACM Barista Task 7 benchmark).
-- 📊 **Nutritional RAG Knowledge Base**: Backed by a verified 378-beverage database (`unified_coffee_kb.csv`) with calories, sugar (g), caffeine (mg), and live Malaysian Ringgit (RM) pricing.
+- 📊 **Nutritional & Allergen RAG Knowledge Base**: Backed by a verified 144-beverage database (`unified_coffee_kb.csv`) with calories, sugar (g), caffeine (mg), allergen safety (lactose, gluten), and live Malaysian Ringgit (RM) pricing (attributed to alvations/kopitiam + MyFCD MOH Malaysia).
 - 🎙️ **Voice-First Experience**: Built-in speech recognition and neural speech synthesis for hands-free ordering.
 
 ---
@@ -64,7 +64,7 @@ When you visit **[chatcoffee.onrender.com](https://chatcoffee.onrender.com/)**, 
 │   └── chatcoffee_model_web.json                       # Mathematical vector weights for Client Browser JS
 └── NLP_Datasets/
     ├── chatcoffee_gold_850.csv                         # 850-instance Gold NLU Benchmark Dataset
-    ├── unified_coffee_kb.csv                           # 378-drink Grounded Nutritional Knowledge Base
+    ├── unified_coffee_kb.csv                           # 144-drink Authentic Kopitiam Nutritional Knowledge Base
     └── shortform-dict.json                             # 341 Malaysian slang normalization rules
 ```
 
