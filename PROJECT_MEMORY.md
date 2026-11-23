@@ -20,7 +20,7 @@ Off-the-shelf single-language NLP models (such as standard English BERT or Indon
 2. **Supervised Intent Classification**: Multi-class machine learning models (Naive Bayes, Logistic Regression, Linear SVM, Random Forest) trained on TF-IDF word unigrams and bigrams ($N = 850$).
 3. **Dual-Script Named Entity Recognition (NER)**: Extracts beverage base, temperature/ice level, sweetness, and milk type from mixed colloquial speech.
 4. **Deterministic Dialogue State Tracker (DST)**: Robust state machine managing proactive slot gathering, mid-order human corrections, dynamic temperature switching, and Kopitiam zero-sugar auto-coupling.
-5. **Grounded Local Knowledge Base & RAG Engine**: 144 authentic Malaysian Kopitiam classic beverages (`unified_coffee_kb.csv`) with laboratory-verified nutrition (calories, sugars, fats, caffeine, allergens: lactose, gluten) from the Malaysian Food Composition Database (MyFCD, MOH Malaysia) and live Malaysian Ringgit (RM) pricing.
+5. **Structured Knowledge-Based Retrieval (SKBR) Engine**: 144 authentic Malaysian Kopitiam classic beverages (`unified_coffee_kb.csv`) with calculated & standardized nutrition (calories, sugars, fats, caffeine, allergens: lactose, gluten) based on the Malaysian Food Composition Database (MyFCD 2015, MOH Malaysia) and authentic Kopitiam standard recipe formulations, paired with live Malaysian Ringgit (RM) pricing.
 
 ---
 
@@ -31,9 +31,9 @@ To ensure 100% authentic local relevance and eliminate foreign coffee chain nois
 | Index | Dataset Name | Scale & Files | Upstream Source & License | Role in System |
 | :---: | :--- | :--- | :--- | :--- |
 | **1** | **`ChatCoffee-Gold-850`** | 850 instances<br>• `chatcoffee_gold_850.csv`<br>• `rojak_brew_gold_850.csv`<br>• `chatcoffee_gold_850.jsonl` | Self-Curated Gold Standard<br>Hugging Face: [`HM28/malaysian-coffee-ordering-nlu`](https://huggingface.co/datasets/HM28/malaysian-coffee-ordering-nlu)<br>License: CC BY 4.0 | Primary NLU training & evaluation benchmark. Balanced across 4 categories: direct order (250), ambiguous (200), mid-order correction (200), health/nutrition QA (200). |
-| **2** | **`Unified Coffee Domain KB`** | 144 drinks (106 Hot, 38 Iced) × 19 features<br>• `unified_coffee_kb.csv` | Harmonized from GitHub [`alvations/kopitiam`](https://github.com/alvations/kopitiam) + Malaysian Food Composition Database (MyFCD 2015, Ministry of Health Malaysia / KKM)<br>License: CC BY 4.0 | RAG knowledge base for health queries, calorie 4-tier evaluation, allergen safety checks (lactose & gluten), and live kiosk RM checkout billing. |
-| **3** | **`Manglish Shortform Dict`** | 343 rules<br>• `shortform-dict.json`<br>• `shortform_dict.csv` | GitHub: [`ZafranYusof/malaysia-manglish-nlp`](https://github.com/ZafranYusof/malaysia-manglish-nlp) & [`huseinzol05/Malaya`](https://github.com/huseinzol05/Malaya)<br>License: MIT | Slang normalization dictionary in Step 4. Expands `nk` $\rightarrow$ `nak`, `brp` $\rightarrow$ `berapa`, `x` $\rightarrow$ `tak`, `xnak` $\rightarrow$ `tak nak`. |
-| **4** | **`Kopitiam Lexicon`** | 168 entries<br>• `kopitiam.tsv`<br>• `kopitiam.csv` | GitHub: [`alvations/kopitiam`](https://github.com/alvations/kopitiam) (Liling Tan)<br>License: MIT | Domain ontology defining physical beverage properties (`Peng`, `Kosong`, `Siu Dai`, `C`, `O`). |
+| **2** | **`Unified Coffee Domain KB`** | 144 drinks (106 Hot, 38 Iced) × 19 features<br>• `unified_coffee_kb.csv` | Harmonized from GitHub [`alvations/kopitiam`](https://github.com/alvations/kopitiam) + Malaysian Food Composition Database (MyFCD 2015, Ministry of Health Malaysia / KKM)<br>License: CC BY 4.0 | Structured domain knowledge base (SKBR) for health queries, 4-tier calorie evaluation (180 kcal threshold), allergen safety checks (lactose & gluten), and live kiosk RM checkout billing. (Foreign 242-item Starbucks records purged). |
+| **3** | **`Manglish Shortform Dict`** | 343 raw / 318 active rules<br>• `shortform-dict.json`<br>• `shortform_dict.csv` | GitHub: [`ZafranYusof/malaysia-manglish-nlp`](https://github.com/ZafranYusof/malaysia-manglish-nlp) & [`huseinzol05/Malaya`](https://github.com/huseinzol05/Malaya)<br>License: MIT | Slang normalization dictionary in Step 4. Expands `nk` $\rightarrow$ `nak`, `brp` $\rightarrow$ `berapa`, `x` $\rightarrow$ `tak`, `xnak` $\rightarrow$ `tak nak`. 318 rules actively loaded at runtime after excluding non-lexical intensifiers/metadata and protecting `kau`. |
+| **4** | **`Kopitiam Lexicon`** | 168 raw / 108 deduplicated<br>• `kopitiam.tsv`<br>• `kopitiam.csv` | GitHub: [`alvations/kopitiam`](https://github.com/alvations/kopitiam) (Liling Tan)<br>License: MIT | Domain ontology defining physical beverage properties (`Peng`, `Kosong`, `Siu Dai`, `C`, `O`). 168 total raw entries mapping to 108 unique canonical terms. |
 | **5** | **`Barista Dialogue Corpus`** | 7,764 turns<br>• `barista_task7_corrections_sample.txt`<br>• `barista_task7_dialogues.csv` | GitHub: [`birfan/BaristaDatasets`](https://github.com/birfan/BaristaDatasets) (ACM/IEEE HRI 2020)<br>License: CC BY-NC-SA 4.0 | Architectural benchmark for multi-turn dialogue state machine, mid-order correction, and customer conversational flow. |
 
 ### Consolidated Clean Package
@@ -53,10 +53,10 @@ All 5 datasets are organized in the directory:
 ### 3.2 Intent Classifier Benchmark Leaderboard (N = 850, Test Set = 170)
 | Rank | Classifier Model | Vectorizer Configuration | Accuracy | Macro Precision | Macro Recall | Macro F1-Score | Status |
 | :---: | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
-| 🥇 | **Linear Support Vector Classifier (`LinearSVC`)** | TF-IDF (1,2) N-Grams | **98.24%** | **0.9832** | **0.9825** | **0.9828** | Champion Model |
-| 🥈 | **Logistic Regression (`LogisticRegression`)** | TF-IDF (1,2) N-Grams | **97.65%** | **0.9778** | **0.9762** | **0.9770** | Deployed Web Engine |
-| 🥉 | **Multinomial Naive Bayes (`MultinomialNB`)** | CountVectorizer (1,2) | 94.71% | 0.9510 | 0.9462 | 0.9481 | Baseline |
-| 4 | **Random Forest (`RandomForestClassifier`, 100 Trees)** | TF-IDF (1,2) N-Grams | 93.53% | 0.9380 | 0.9345 | 0.9358 | Ensemble |
+| 🥇 | **Linear Support Vector Classifier (`LinearSVC`)** | TF-IDF (1,2) N-Grams | **98.24%** | **0.9812** | **0.9812** | **0.9812** | Champion Model |
+| 🥈 | **Random Forest (`RandomForestClassifier`, 100 Trees)** | TF-IDF (1,2) N-Grams | **97.65%** | **0.9759** | **0.9775** | **0.9765** | Ensemble Runner-up |
+| 🥉 | **Logistic Regression (`LogisticRegression`)** | TF-IDF (1,2) N-Grams | **97.06%** | **0.9713** | **0.9688** | **0.9695** | Deployed Web Engine |
+| 4 | **Multinomial Naive Bayes (`MultinomialNB`)** | CountVectorizer (1,2) | 94.12% | 0.9491 | 0.9375 | 0.9396 | Baseline |
 
 ### 3.3 Classification Performance by Intent Class (Balanced 4-Class Architecture)
 - **`order_drink`** (Direct order): Precision = 0.98, Recall = 0.98, F1 = 0.98 (Support = 50)
