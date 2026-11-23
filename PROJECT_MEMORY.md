@@ -136,3 +136,15 @@ All modifications are kept in 100% byte-for-byte synchronization across workspac
 | `d:\This PC\Downloads\chatcoffee_malaysian_unmanned_smart_kiosk_bmds2123_nlp (10).html` | Downloads folder mirror | ✅ Synced |
 | `README.md` & `github/README.md` | Overhauled project documentation (144 items, 5 datasets) | ✅ Synced |
 | `ChatCoffee_NLP_Model_Training_and_Evaluation.ipynb` | Academic deliverable notebook (N=850 intact) | ✅ Ready |
+
+---
+
+## 6. Clean Workspace Structure & Maintenance
+
+The repository was systematically reorganized into a clean, production-grade layout:
+- **`docs/`**: Assignment specification PDFs, rubric, extracted spec text, plus subdirectories `figures/` (high-res evaluation plots) and `screenshots/` (test case evidence).
+- **`NLP_Datasets/`**: Grounded 5-dataset suite (<1MB) powering NLU training and runtime SKBR lookup.
+- **`models/`**: Production model weights (`chatcoffee_intent_classifier.joblib`, `chatcoffee_model_web.json`).
+- **`scripts/`**: Utility, data curation, doc-patching, and notebook rebuild scripts.
+- **`tests/`**: Automated verification and unit test suites (e.g. `test_app_features.py` testing 18/18 API features).
+- **Purged Junk**: Removed temporary `.mp3` audio files, intermediate crop images, `__pycache__` directories, legacy `rojak_*` model duplicates, obsolete scratch folders (`trail/`), and the unreferenced 450 MB external audio archive.

@@ -53,19 +53,26 @@ When you visit **[chatcoffee.onrender.com](https://chatcoffee.onrender.com/)**, 
 ## 📂 Project Structure
 
 ```text
-├── index.html                                          # Interactive Smart Kiosk Web UI (Client-Side ML & Voice)
+├── chatcoffee_malaysian_unmanned_smart_kiosk.html     # Interactive Smart Kiosk Web UI (Standalone HTML)
 ├── app.py                                              # FastAPI backend server hosting REST API & Dialogue Engine
 ├── ChatCoffee_NLP_Model_Training_and_Evaluation.ipynb  # Complete Jupyter Notebook (EDA, Data Cleaning, Model Benchmarks)
 ├── requirements.txt                                    # Production Python dependencies
 ├── Dockerfile                                          # Docker container deployment configuration
 ├── Procfile                                            # Cloud PaaS (Render) deployment entrypoint
+├── docs/                                               # Assignment specifications, rubric, reports & figures
+│   ├── figures/                                        # High-resolution evaluation and architecture figures
+│   └── screenshots/                                    # Test case evidence screenshots
 ├── models/
 │   ├── chatcoffee_intent_classifier.joblib             # Scikit-Learn serialized model for Python backend
 │   └── chatcoffee_model_web.json                       # Mathematical vector weights for Client Browser JS
-└── NLP_Datasets/
-    ├── chatcoffee_gold_850.csv                         # 850-instance Gold NLU Benchmark Dataset
-    ├── unified_coffee_kb.csv                           # 144-drink Authentic Kopitiam Nutritional Knowledge Base
-    └── shortform-dict.json                             # 318 active runtime normalization rules (from 343 raw upstream rules)
+├── NLP_Datasets/
+│   ├── chatcoffee_gold_850.csv                         # 850-instance Gold NLU Benchmark Dataset
+│   ├── unified_coffee_kb.csv                           # 144-drink Authentic Kopitiam Nutritional Knowledge Base
+│   ├── shortform-dict.json                             # 318 active runtime normalization rules
+│   ├── kopitiam.csv / kopitiam.tsv                     # Kopitiam beverage ontology
+│   └── barista_task7_dialogues.csv                     # Multi-turn dialogue corpus
+├── scripts/                                            # Utility, build, and maintenance scripts
+└── tests/                                              # Backend API and dialogue test suites
 ```
 
 ---
