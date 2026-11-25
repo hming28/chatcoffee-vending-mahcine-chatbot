@@ -38,14 +38,14 @@ def test_cleaned_datasets_integrity():
     for col in ("target_response", "serving_type", "old_value", "new_value", "customer_id"):
         assert col not in gold.columns
 
-    v15_path = os.path.join(ROOT_DIR, "NLP_Datasets", "chatcoffee_v1_5_2100.csv")
-    with open(v15_path, "rb") as f:
-        assert f.read(3) == b"\xef\xbb\xbf", "v1.5 CSV must include UTF-8 BOM for Excel Chinese display"
-    v15 = pd.read_csv(v15_path, keep_default_na=False)
-    assert len(v15) == 2100
-    assert v15["intent"].nunique() == 14
-    assert "serving_type" not in v15.columns
-    assert set(v15["split"].unique()) == {"train", "validation", "test"}
+    v21_path = os.path.join(ROOT_DIR, "NLP_Datasets", "chatcoffee_v2_1.csv")
+    with open(v21_path, "rb") as f:
+        assert f.read(3) == b"\xef\xbb\xbf", "v2.1 CSV must include UTF-8 BOM for Excel Chinese display"
+    v21 = pd.read_csv(v21_path, keep_default_na=False)
+    assert len(v21) == 1440
+    assert v21["intent"].nunique() == 6
+    assert "serving_type" not in v21.columns
+    assert set(v21["split"].unique()) == {"train", "validation", "test"}
 
     kb = pd.read_csv(os.path.join(ROOT_DIR, "NLP_Datasets", "unified_coffee_kb.csv"), keep_default_na=False)
     assert len(kb) == 137
@@ -70,7 +70,7 @@ def test_model_parity_joblib_json_and_index_html():
 
     jb_vocab_size = len(jb["vectorizer"].vocabulary_)
     assert jb_vocab_size == len(wj["vocabulary"]) == len(embedded["vocabulary"]) >= 842
-    assert len(jb["classes"]) == 14
+    assert len(jb["classes"]) == 6
     assert list(jb["classes"]) == wj["classes"] == embedded["classes"]
 
     r_model = client.get("/models/chatcoffee_model_web.json")
@@ -137,31 +137,23 @@ def test_audit_bugfixes_ner_dst_pricing_and_ood():
     assert r_sf3["slots"]["sweetness_level"] == "Zero Sugar"
     assert r_sf3["slots"]["milk_type"] == "None"
 
-    # 9. v1.5 14-intent kiosk navigation, payment QA, OOS, and ice/warm slots
-    r_pay = client.post("/api/chat", json={"utterance": "Can I pay using QR code?", "session_id": uuid.uuid4().hex}).json()
-    assert r_pay["intent"] == "payment_query"
-    assert r_pay["ui_action"] == "answer_payment_policy"
-
-    r_menu = client.post("/api/chat", json={"utterance": "Open the drink menu please", "session_id": uuid.uuid4().hex}).json()
-    assert r_menu["intent"] == "navigate_menu"
-    assert r_menu["ui_action"] == "show_menu"
-    assert r_menu["target_screen"] == "menu"
-
-    r_home = client.post("/api/chat", json={"utterance": "Go back to home screen", "session_id": uuid.uuid4().hex}).json()
-    assert r_home["intent"] == "navigate_home"
-    assert r_home["ui_action"] == "show_home"
-
+    # 9. v2.1 6-intent ML confirm/cancel expressions, ice_level, and OOD fallback
     sid = uuid.uuid4().hex
     r_ice = client.post("/api/chat", json={"utterance": "Kopi peng kurang ais siu dai", "session_id": sid}).json()
     assert r_ice["slots"]["ice_level"] == "Less Ice"
-    r_rev = client.post("/api/chat", json={"utterance": "Review my current order", "session_id": sid}).json()
-    assert r_rev["intent"] == "review_order"
-    assert r_rev["ui_action"] == "show_order"
-    r_npay = client.post("/api/chat", json={"utterance": "Go to payment screen", "session_id": sid}).json()
-    assert r_npay["intent"] == "navigate_payment"
-    assert r_npay["target_screen"] == "payment"
+    assert r_ice["state"]["status"] == "AWAITING_CONFIRMATION"
 
-    r_oos2 = client.post("/api/chat", json={"utterance": "The air in this room is very cold today", "session_id": uuid.uuid4().hex}).json()
+    r_cnfrm = client.post("/api/chat", json={"utterance": "ok ngam cnfrm lah", "session_id": sid}).json()
+    assert r_cnfrm["intent"] == "order_confirm"
+    assert r_cnfrm["state"]["status"] == "DISPENSING"
+
+    sid2 = uuid.uuid4().hex
+    client.post("/api/chat", json={"utterance": "Teh O panas kosong", "session_id": sid2})
+    r_cncl = client.post("/api/chat", json={"utterance": "xjadi order lah, cncl dulu", "session_id": sid2}).json()
+    assert r_cncl["intent"] == "system_reset"
+    assert r_cncl["state"]["base_drink"] is None
+
+    r_oos2 = client.post("/api/chat", json={"utterance": "Book a flight ticket to Penang", "session_id": uuid.uuid4().hex}).json()
     assert r_oos2["intent"] == "fallback"
 
 

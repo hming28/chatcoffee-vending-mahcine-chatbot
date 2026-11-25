@@ -64,8 +64,8 @@ if not os.path.exists(KB_PATH):
 if not os.path.exists(KB_PATH):
     KB_PATH = os.path.join(BASE_DIR, "data", "unified_coffee_kb.csv")
 
-V15_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_v1_5_2100.csv")
-GOLD_PATH = V15_PATH if os.path.exists(V15_PATH) else os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_gold_850.csv")
+V21_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_v2_1.csv")
+GOLD_PATH = V21_PATH if os.path.exists(V21_PATH) else os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_gold_850.csv")
 if not os.path.exists(GOLD_PATH):
     GOLD_PATH = os.path.join(BASE_DIR, "chatcoffee_gold_850.csv")
 
@@ -1677,9 +1677,14 @@ def chat_endpoint(req: ChatRequest):
             "clean_text": c_text, "slots": extracted_slots, "state": state
         }
 
-    # Out-of-scope / low-confidence rejection (tuned for 14-class probability scale)
+    # Out-of-scope / low-confidence rejection (tuned for 6-class v2.1 probability scale + OOV domain guard)
+    _OOD_STOP = {"a", "an", "the", "to", "on", "in", "at", "for", "of", "is", "are", "was", "my", "your", "i", "me", "you", "it", "this", "that", "with", "and", "or", "do", "can", "please", "pls"}
+    _DOMAIN_SAFE_WORDS = {"recommend", "recommendations", "suggest", "bestseller", "popular", "sweet", "bitter", "menu", "drink", "drinks", "beverage", "beverages", "coffee", "tea", "order", "confirm", "cancel", "reset", "pay", "payment", "price", "cost", "how", "what", "which", "any", "available", "cadang", "rekomen", "minuman", "air", "推荐", "什么", "饮品", "饮料"}
+    _c_toks = [w for w in re.sub(r"([\u4e00-\u9fff])", r" \1 ", c_text).split() if w not in _OOD_STOP]
+    _vocab_ref = web_ml_model["vocabulary"] if web_ml_model is not None else (getattr(tfidf_vec, "vocabulary_", {}) or {})
+    _has_domain_hit = any((w in _vocab_ref or w in _DOMAIN_SAFE_WORDS) for w in _c_toks)
     is_high_conf_oos = pred_intent == "out_of_scope" and conf >= 0.35 and not extracted_slots.get("base_drink")
-    if (is_high_conf_oos or (conf < 0.20 and not extracted_slots)) and not was_awaiting_confirm and not state.get("pending_slot"):
+    if (is_high_conf_oos or (not _has_domain_hit and not extracted_slots) or (conf < 0.32 and not extracted_slots)) and not was_awaiting_confirm and not state.get("pending_slot"):
         response = (
             "抱歉，我只负责 ChatCoffee 无人咖啡机点单服务。请问您想喝什么饮料呢？可选 Kopi、Teh、Cham、Milo、White Coffee 等。"
             if is_zh else
