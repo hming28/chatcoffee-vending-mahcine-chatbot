@@ -1,0 +1,1690 @@
+{
+  "overall": {
+    "total_cases": 36,
+    "model_a": {
+      "avg_wer": 0.4617,
+      "avg_cer": 0.2923,
+      "avg_slot_f1": 0.5459
+    },
+    "model_b": {
+      "avg_wer": 0.3566,
+      "avg_cer": 0.2096,
+      "avg_slot_f1": 0.565
+    },
+    "model_c": {
+      "avg_wer": 0.3472,
+      "avg_cer": 0.2371,
+      "avg_slot_f1": 0.6787
+    }
+  },
+  "by_category": {
+    "Colloquial Slang": {
+      "count": 4,
+      "model_a": {
+        "avg_wer": 0.369,
+        "avg_cer": 0.2087,
+        "avg_slot_f1": 0.4417
+      },
+      "model_b": {
+        "avg_wer": 0.4047,
+        "avg_cer": 0.1014,
+        "avg_slot_f1": 0.4167
+      },
+      "model_c": {
+        "avg_wer": 0.3333,
+        "avg_cer": 0.1994,
+        "avg_slot_f1": 0.4417
+      }
+    },
+    "Manglish (EN+BM)": {
+      "count": 5,
+      "model_a": {
+        "avg_wer": 0.4371,
+        "avg_cer": 0.2057,
+        "avg_slot_f1": 0.6133
+      },
+      "model_b": {
+        "avg_wer": 0.4921,
+        "avg_cer": 0.3149,
+        "avg_slot_f1": 0.4
+      },
+      "model_c": {
+        "avg_wer": 0.3593,
+        "avg_cer": 0.2239,
+        "avg_slot_f1": 0.63
+      }
+    },
+    "Pure Chinese": {
+      "count": 4,
+      "model_a": {
+        "avg_wer": 0.5208,
+        "avg_cer": 0.5208,
+        "avg_slot_f1": 0.4643
+      },
+      "model_b": {
+        "avg_wer": 0.0,
+        "avg_cer": 0.0,
+        "avg_slot_f1": 0.9285
+      },
+      "model_c": {
+        "avg_wer": 0.0227,
+        "avg_cer": 0.0227,
+        "avg_slot_f1": 0.9285
+      }
+    },
+    "Pure English": {
+      "count": 4,
+      "model_a": {
+        "avg_wer": 0.2857,
+        "avg_cer": 0.2727,
+        "avg_slot_f1": 0.6667
+      },
+      "model_b": {
+        "avg_wer": 0.0357,
+        "avg_cer": 0.0076,
+        "avg_slot_f1": 0.8542
+      },
+      "model_c": {
+        "avg_wer": 0.126,
+        "avg_cer": 0.1358,
+        "avg_slot_f1": 0.8542
+      }
+    },
+    "Pure Malay": {
+      "count": 4,
+      "model_a": {
+        "avg_wer": 0.3482,
+        "avg_cer": 0.1571,
+        "avg_slot_f1": 0.5764
+      },
+      "model_b": {
+        "avg_wer": 0.3482,
+        "avg_cer": 0.1473,
+        "avg_slot_f1": 0.5764
+      },
+      "model_c": {
+        "avg_wer": 0.3482,
+        "avg_cer": 0.1392,
+        "avg_slot_f1": 0.5764
+      }
+    },
+    "Rojak (BM+ZH)": {
+      "count": 5,
+      "model_a": {
+        "avg_wer": 0.7361,
+        "avg_cer": 0.3984,
+        "avg_slot_f1": 0.3833
+      },
+      "model_b": {
+        "avg_wer": 0.7611,
+        "avg_cer": 0.5411,
+        "avg_slot_f1": 0.36
+      },
+      "model_c": {
+        "avg_wer": 0.7361,
+        "avg_cer": 0.5389,
+        "avg_slot_f1": 0.5233
+      }
+    },
+    "Rojak (EN+ZH)": {
+      "count": 5,
+      "model_a": {
+        "avg_wer": 0.3408,
+        "avg_cer": 0.2635,
+        "avg_slot_f1": 0.7143
+      },
+      "model_b": {
+        "avg_wer": 0.2236,
+        "avg_cer": 0.1978,
+        "avg_slot_f1": 0.7143
+      },
+      "model_c": {
+        "avg_wer": 0.2858,
+        "avg_cer": 0.2818,
+        "avg_slot_f1": 0.8476
+      }
+    },
+    "Trilingual (BM+EN+ZH)": {
+      "count": 5,
+      "model_a": {
+        "avg_wer": 0.5909,
+        "avg_cer": 0.3096,
+        "avg_slot_f1": 0.5
+      },
+      "model_b": {
+        "avg_wer": 0.46,
+        "avg_cer": 0.2501,
+        "avg_slot_f1": 0.3733
+      },
+      "model_c": {
+        "avg_wer": 0.4545,
+        "avg_cer": 0.2646,
+        "avg_slot_f1": 0.6448
+      }
+    }
+  },
+  "items": [
+    {
+      "id": "BM-01",
+      "category": "Pure Malay",
+      "ref_text": "Bagi satu kopi o panas kurang manis satu",
+      "ref_slots": {
+        "base_drink": "Kopi",
+        "temperature": "Hot",
+        "sweetness_level": "Less Sugar",
+        "milk_type": "None"
+      },
+      "model_a": {
+        "hyp_text": "Bagi 1 kopi O Panas Kurang Manis 1",
+        "slots": {
+          "base_drink": "Kopi",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Less Sugar",
+          "milk_type": "None"
+        },
+        "wer": 0.25,
+        "cer": 0.2424,
+        "slot_f1": 0.8889
+      },
+      "model_b": {
+        "hyp_text": "Bagi 1 kopi O panas kurang manis 1.",
+        "slots": {
+          "base_drink": "Kopi",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Less Sugar",
+          "milk_type": "None"
+        },
+        "wer": 0.25,
+        "cer": 0.2424,
+        "slot_f1": 0.8889
+      },
+      "model_c": {
+        "hyp_text": "Bagi 1 kopi o panas kurang manis 1.",
+        "best_track": "auto",
+        "slots": {
+          "base_drink": "Kopi",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Less Sugar",
+          "milk_type": "None"
+        },
+        "wer": 0.25,
+        "cer": 0.2424,
+        "slot_f1": 0.8889
+      }
+    },
+    {
+      "id": "BM-02",
+      "category": "Pure Malay",
+      "ref_text": "Saya nak teh tarik satu suam tapau ya",
+      "ref_slots": {
+        "base_drink": "Teh",
+        "temperature": "Hot",
+        "milk_type": "Condensed Milk"
+      },
+      "model_a": {
+        "hyp_text": "Saya nak teh tarik satu suam Tapau, ya?",
+        "slots": {
+          "base_drink": "Teh",
+          "temperature": "Hot",
+          "temp_detail": "Warm",
+          "sweetness_level": "Normal",
+          "milk_type": "Condensed Milk"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.75
+      },
+      "model_b": {
+        "hyp_text": "Saya nak teh tarik satu suam tapau ya.",
+        "slots": {
+          "base_drink": "Teh",
+          "temperature": "Hot",
+          "temp_detail": "Warm",
+          "sweetness_level": "Normal",
+          "milk_type": "Condensed Milk"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.75
+      },
+      "model_c": {
+        "hyp_text": "Saya nak teh tarik satu suam tapau ya.",
+        "best_track": "auto",
+        "slots": {
+          "base_drink": "Teh",
+          "temperature": "Hot",
+          "temp_detail": "Warm",
+          "sweetness_level": "Normal",
+          "milk_type": "Condensed Milk"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.75
+      }
+    },
+    {
+      "id": "BM-03",
+      "category": "Pure Malay",
+      "ref_text": "Boleh bagi satu milo o kosong peng",
+      "ref_slots": {
+        "base_drink": "Milo",
+        "temperature": "Iced",
+        "sweetness_level": "Zero Sugar",
+        "milk_type": "None"
+      },
+      "model_a": {
+        "hyp_text": "Boleh bagi 1 milu okus Sumpeng",
+        "slots": {},
+        "wer": 0.7143,
+        "cer": 0.3214,
+        "slot_f1": 0.0
+      },
+      "model_b": {
+        "hyp_text": "Boleh bagi 1 milu oku songping.",
+        "slots": {},
+        "wer": 0.7143,
+        "cer": 0.25,
+        "slot_f1": 0.0
+      },
+      "model_c": {
+        "hyp_text": "Boleh bagi 1 milu oku songping.",
+        "best_track": "auto",
+        "slots": {},
+        "wer": 0.7143,
+        "cer": 0.25,
+        "slot_f1": 0.0
+      }
+    },
+    {
+      "id": "BM-04",
+      "category": "Pure Malay",
+      "ref_text": "Tolong bagi kopi c panas satu bungkus",
+      "ref_slots": {
+        "base_drink": "Kopi",
+        "temperature": "Hot",
+        "milk_type": "Evaporated Milk"
+      },
+      "model_a": {
+        "hyp_text": "Tolong bagi kopi si Panas sa tubungkus",
+        "slots": {
+          "base_drink": "Kopi",
+          "temperature": "Hot",
+          "temp_detail": "Hot"
+        },
+        "wer": 0.4286,
+        "cer": 0.0645,
+        "slot_f1": 0.6667
+      },
+      "model_b": {
+        "hyp_text": "Tolong bagi kopi si panas sa tubungkos.",
+        "slots": {
+          "base_drink": "Kopi",
+          "temperature": "Hot",
+          "temp_detail": "Hot"
+        },
+        "wer": 0.4286,
+        "cer": 0.0968,
+        "slot_f1": 0.6667
+      },
+      "model_c": {
+        "hyp_text": "Tolong bagi kopi si panas sa tubungkus",
+        "best_track": "ms",
+        "slots": {
+          "base_drink": "Kopi",
+          "temperature": "Hot",
+          "temp_detail": "Hot"
+        },
+        "wer": 0.4286,
+        "cer": 0.0645,
+        "slot_f1": 0.6667
+      }
+    },
+    {
+      "id": "EN-01",
+      "category": "Pure English",
+      "ref_text": "Can I have one hot americano without sugar",
+      "ref_slots": {
+        "base_drink": "Americano",
+        "temperature": "Hot",
+        "sweetness_level": "Zero Sugar",
+        "milk_type": "None"
+      },
+      "model_a": {
+        "hyp_text": ".",
+        "slots": {},
+        "wer": 1.0,
+        "cer": 1.0,
+        "slot_f1": 0.0
+      },
+      "model_b": {
+        "hyp_text": "Can I have one hot Americano without sugar?",
+        "slots": {
+          "base_drink": "Americano",
+          "milk_type": "None",
+          "temperature": "Hot",
+          "temp_detail": "Hot"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.75
+      },
+      "model_c": {
+        "hyp_text": "Pesanan Kopitiam. Can I have one hot Americano without sugar?",
+        "best_track": "ms",
+        "slots": {
+          "base_drink": "Americano",
+          "milk_type": "None",
+          "temperature": "Hot",
+          "temp_detail": "Hot"
+        },
+        "wer": 0.25,
+        "cer": 0.4286,
+        "slot_f1": 0.75
+      }
+    },
+    {
+      "id": "EN-02",
+      "category": "Pure English",
+      "ref_text": "One iced white coffee less sweet please",
+      "ref_slots": {
+        "base_drink": "White Coffee",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar"
+      },
+      "model_a": {
+        "hyp_text": "1 Iced White Coffee Less Sweet Please",
+        "slots": {
+          "base_drink": "White Coffee",
+          "temperature": "Iced",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.1429,
+        "cer": 0.0909,
+        "slot_f1": 1.0
+      },
+      "model_b": {
+        "hyp_text": "One ice white coffee less sweet please.",
+        "slots": {
+          "base_drink": "White Coffee",
+          "temperature": "Iced",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.1429,
+        "cer": 0.0303,
+        "slot_f1": 1.0
+      },
+      "model_c": {
+        "hyp_text": "1 Iced White Coffee Less Sweet Please",
+        "best_track": "ms",
+        "slots": {
+          "base_drink": "White Coffee",
+          "temperature": "Iced",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.1429,
+        "cer": 0.0909,
+        "slot_f1": 1.0
+      }
+    },
+    {
+      "id": "EN-03",
+      "category": "Pure English",
+      "ref_text": "Give me one iced tea with evaporated milk takeaway",
+      "ref_slots": {
+        "base_drink": "Teh",
+        "temperature": "Iced",
+        "milk_type": "Evaporated Milk"
+      },
+      "model_a": {
+        "hyp_text": "Give me one iced tea with evaporated milk takeaway.",
+        "slots": {
+          "base_drink": "Teh",
+          "temperature": "Iced",
+          "milk_type": "Evaporated Milk"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 1.0
+      },
+      "model_b": {
+        "hyp_text": "Give me one iced tea with evaporated milk takeaway.",
+        "slots": {
+          "base_drink": "Teh",
+          "temperature": "Iced",
+          "milk_type": "Evaporated Milk"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 1.0
+      },
+      "model_c": {
+        "hyp_text": "Give me one iced teh with evaporated milk takeaway.",
+        "best_track": "auto",
+        "slots": {
+          "base_drink": "Teh",
+          "temperature": "Iced",
+          "milk_type": "Evaporated Milk"
+        },
+        "wer": 0.1111,
+        "cer": 0.0238,
+        "slot_f1": 1.0
+      }
+    },
+    {
+      "id": "EN-04",
+      "category": "Pure English",
+      "ref_text": "I would like one hot milo normal sweetness",
+      "ref_slots": {
+        "base_drink": "Milo",
+        "temperature": "Hot",
+        "sweetness_level": "Normal"
+      },
+      "model_a": {
+        "hyp_text": "I would like one hot Milo normal sweetness.",
+        "slots": {
+          "base_drink": "Milo",
+          "temperature": "Hot",
+          "temp_detail": "Hot"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.6667
+      },
+      "model_b": {
+        "hyp_text": "I would like one hot Milo normal sweetness.",
+        "slots": {
+          "base_drink": "Milo",
+          "temperature": "Hot",
+          "temp_detail": "Hot"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.6667
+      },
+      "model_c": {
+        "hyp_text": "I would like one hot Milo normal sweetness.",
+        "best_track": "auto",
+        "slots": {
+          "base_drink": "Milo",
+          "temperature": "Hot",
+          "temp_detail": "Hot"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.6667
+      }
+    },
+    {
+      "id": "ZH-01",
+      "category": "Pure Chinese",
+      "ref_text": "老板我要一杯热鸳鸯少甜",
+      "ref_slots": {
+        "base_drink": "Cham",
+        "temperature": "Hot",
+        "sweetness_level": "Less Sugar"
+      },
+      "model_a": {
+        "hyp_text": "Pesanan Kopitiam.",
+        "slots": {},
+        "wer": 1.0,
+        "cer": 1.0,
+        "slot_f1": 0.0
+      },
+      "model_b": {
+        "hyp_text": "老板，我要一杯热鸳鸯少甜，。",
+        "slots": {
+          "base_drink": "Cham",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.8571
+      },
+      "model_c": {
+        "hyp_text": "老闆,我要一杯热鸳鸯少甜",
+        "best_track": "en",
+        "slots": {
+          "base_drink": "Cham",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.0909,
+        "cer": 0.0909,
+        "slot_f1": 0.8571
+      }
+    },
+    {
+      "id": "ZH-02",
+      "category": "Pure Chinese",
+      "ref_text": "来一杯冰美禄少冰无糖打包",
+      "ref_slots": {
+        "base_drink": "Milo",
+        "temperature": "Iced",
+        "sweetness_level": "Zero Sugar",
+        "ice_level": "Less Ice"
+      },
+      "model_a": {
+        "hyp_text": "来一杯冰美陆少冰无糖打包",
+        "slots": {
+          "temperature": "Iced",
+          "ice_level": "Less Ice",
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.0833,
+        "cer": 0.0833,
+        "slot_f1": 0.8571
+      },
+      "model_b": {
+        "hyp_text": "来一杯冰美禄少冰无糖，打包。",
+        "slots": {
+          "base_drink": "Milo",
+          "temperature": "Iced",
+          "ice_level": "Less Ice",
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 1.0
+      },
+      "model_c": {
+        "hyp_text": "来一杯冰美禄少冰无糖，打包。",
+        "best_track": "auto",
+        "slots": {
+          "base_drink": "Milo",
+          "temperature": "Iced",
+          "ice_level": "Less Ice",
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 1.0
+      }
+    },
+    {
+      "id": "ZH-03",
+      "category": "Pure Chinese",
+      "ref_text": "给我两杯白咖啡加糖热的",
+      "ref_slots": {
+        "base_drink": "White Coffee",
+        "temperature": "Hot",
+        "sweetness_level": "Extra Sugar"
+      },
+      "model_a": {
+        "hyp_text": "Milo 2, que mis épingan al",
+        "slots": {
+          "base_drink": "Milo"
+        },
+        "wer": 1.0,
+        "cer": 1.0,
+        "slot_f1": 0.0
+      },
+      "model_b": {
+        "hyp_text": "给我两杯白咖啡加糖热的。",
+        "slots": {
+          "base_drink": "White Coffee",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Extra Sugar"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.8571
+      },
+      "model_c": {
+        "hyp_text": "给我两杯白咖啡加糖热的。",
+        "best_track": "auto",
+        "slots": {
+          "base_drink": "White Coffee",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Extra Sugar"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.8571
+      }
+    },
+    {
+      "id": "ZH-04",
+      "category": "Pure Chinese",
+      "ref_text": "一杯柠檬茶去冰无糖",
+      "ref_slots": {
+        "base_drink": "Teh O Limau",
+        "temperature": "Iced",
+        "sweetness_level": "Zero Sugar",
+        "ice_level": "No Ice",
+        "milk_type": "None"
+      },
+      "model_a": {
+        "hyp_text": "一杯柠檬茶去冰无糖",
+        "slots": {
+          "base_drink": "Teh O Limau",
+          "milk_type": "None",
+          "temperature": "Iced",
+          "ice_level": "No Ice",
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 1.0
+      },
+      "model_b": {
+        "hyp_text": "一杯柠檬茶，去冰无糖，",
+        "slots": {
+          "base_drink": "Teh O Limau",
+          "milk_type": "None",
+          "temperature": "Iced",
+          "ice_level": "No Ice",
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 1.0
+      },
+      "model_c": {
+        "hyp_text": "一杯柠檬茶，去冰无糖，",
+        "best_track": "auto",
+        "slots": {
+          "base_drink": "Teh O Limau",
+          "milk_type": "None",
+          "temperature": "Iced",
+          "ice_level": "No Ice",
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 1.0
+      }
+    },
+    {
+      "id": "MANG-01",
+      "category": "Manglish (EN+BM)",
+      "ref_text": "Boss, one kopi peng less sugar tapau please",
+      "ref_slots": {
+        "base_drink": "Kopi",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar"
+      },
+      "model_a": {
+        "hyp_text": "Boss, 1 kopi pun less sugar to pow please",
+        "slots": {
+          "base_drink": "Kopi",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.5,
+        "cer": 0.2286,
+        "slot_f1": 0.8
+      },
+      "model_b": {
+        "hyp_text": "Boss, one kopi pun less sugar to pow please.",
+        "slots": {
+          "base_drink": "Kopi",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.375,
+        "cer": 0.1429,
+        "slot_f1": 0.8
+      },
+      "model_c": {
+        "hyp_text": "Boss, one kopi pun less sugar tapau please.",
+        "best_track": "auto",
+        "slots": {
+          "base_drink": "Kopi",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.125,
+        "cer": 0.0571,
+        "slot_f1": 0.8
+      }
+    },
+    {
+      "id": "MANG-02",
+      "category": "Manglish (EN+BM)",
+      "ref_text": "Can tapau one teh c ice siu dai?",
+      "ref_slots": {
+        "base_drink": "Teh",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar",
+        "milk_type": "Evaporated Milk"
+      },
+      "model_a": {
+        "hyp_text": "Kintapau 1T C. I. Siu Dai",
+        "slots": {
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.625,
+        "cer": 0.375,
+        "slot_f1": 0.4
+      },
+      "model_b": {
+        "hyp_text": "坚定派一体西洋鸡，大。",
+        "slots": {},
+        "wer": 1.0,
+        "cer": 1.0,
+        "slot_f1": 0.0
+      },
+      "model_c": {
+        "hyp_text": "Kintapau 1T C. I. Siu Dai",
+        "best_track": "ms",
+        "slots": {
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.625,
+        "cer": 0.375,
+        "slot_f1": 0.4
+      }
+    },
+    {
+      "id": "MANG-03",
+      "category": "Manglish (EN+BM)",
+      "ref_text": "I want one cup of cham peng kosong",
+      "ref_slots": {
+        "base_drink": "Cham",
+        "temperature": "Iced",
+        "sweetness_level": "Zero Sugar"
+      },
+      "model_a": {
+        "hyp_text": "I won one cup of Champan Kosong.",
+        "slots": {
+          "sweetness_level": "Zero Sugar",
+          "milk_type": "None"
+        },
+        "wer": 0.375,
+        "cer": 0.1481,
+        "slot_f1": 0.4
+      },
+      "model_b": {
+        "hyp_text": "I won one cup of Champan Kosoong.",
+        "slots": {},
+        "wer": 0.5,
+        "cer": 0.1852,
+        "slot_f1": 0.0
+      },
+      "model_c": {
+        "hyp_text": "I won one cup of Champan kosong.",
+        "best_track": "ms",
+        "slots": {
+          "sweetness_level": "Zero Sugar",
+          "milk_type": "None"
+        },
+        "wer": 0.375,
+        "cer": 0.1481,
+        "slot_f1": 0.4
+      }
+    },
+    {
+      "id": "MANG-04",
+      "category": "Manglish (EN+BM)",
+      "ref_text": "Give me one neslo ice tapau bungkus",
+      "ref_slots": {
+        "base_drink": "Neslo",
+        "temperature": "Iced"
+      },
+      "model_a": {
+        "hyp_text": "Give me one Neslo ice to Pau Bungkus",
+        "slots": {
+          "base_drink": "Neslo",
+          "temperature": "Iced",
+          "sweetness_level": "Normal"
+        },
+        "wer": 0.2857,
+        "cer": 0.0345,
+        "slot_f1": 0.8
+      },
+      "model_b": {
+        "hyp_text": "Give me one Neslo ice to Pau Bungkus.",
+        "slots": {
+          "base_drink": "Neslo",
+          "temperature": "Iced",
+          "sweetness_level": "Normal"
+        },
+        "wer": 0.2857,
+        "cer": 0.0345,
+        "slot_f1": 0.8
+      },
+      "model_c": {
+        "hyp_text": "bungkus, Tui Neslo, Ais, Tapau, bungkus!",
+        "best_track": "ms",
+        "slots": {
+          "base_drink": "Neslo",
+          "temperature": "Iced",
+          "sweetness_level": "Normal"
+        },
+        "wer": 0.5714,
+        "cer": 0.4483,
+        "slot_f1": 0.8
+      }
+    },
+    {
+      "id": "MANG-05",
+      "category": "Manglish (EN+BM)",
+      "ref_text": "Boss, can I get one kopi o ice kurang manis?",
+      "ref_slots": {
+        "base_drink": "Kopi",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar",
+        "milk_type": "None"
+      },
+      "model_a": {
+        "hyp_text": "Boss, can I get one kopi or Ais Kora Menis?",
+        "slots": {
+          "base_drink": "Kopi",
+          "temperature": "Iced"
+        },
+        "wer": 0.4,
+        "cer": 0.2424,
+        "slot_f1": 0.6667
+      },
+      "model_b": {
+        "hyp_text": "Boss, can I get one kopi or aiskora manis?",
+        "slots": {
+          "base_drink": "Kopi"
+        },
+        "wer": 0.3,
+        "cer": 0.2121,
+        "slot_f1": 0.4
+      },
+      "model_c": {
+        "hyp_text": "Boss, can I get one kopi o ice kora manis?",
+        "best_track": "en",
+        "slots": {
+          "base_drink": "Kopi",
+          "temperature": "Iced",
+          "sweetness_level": "Normal",
+          "milk_type": "None"
+        },
+        "wer": 0.1,
+        "cer": 0.0909,
+        "slot_f1": 0.75
+      }
+    },
+    {
+      "id": "ROJAK-MC-01",
+      "category": "Rojak (BM+ZH)",
+      "ref_text": "Boss, bagi satu 鸳鸯 peng kurang manis tapau",
+      "ref_slots": {
+        "base_drink": "Cham",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar"
+      },
+      "model_a": {
+        "hyp_text": "Baggi Satu, Yanyang Panku, Rang Maneist, Pau",
+        "slots": {},
+        "wer": 0.8889,
+        "cer": 0.4412,
+        "slot_f1": 0.0
+      },
+      "model_b": {
+        "hyp_text": "Boss， 白鸡萨土鸢鸯 胖苦让Manis 特炮。",
+        "slots": {},
+        "wer": 1.0,
+        "cer": 0.7059,
+        "slot_f1": 0.0
+      },
+      "model_c": {
+        "hyp_text": "Boss，白咖啡，鸭鸯，胖，麦西特炮，",
+        "best_track": "zh",
+        "slots": {
+          "base_drink": "White Coffee",
+          "sweetness_level": "Normal"
+        },
+        "wer": 1.0,
+        "cer": 0.8529,
+        "slot_f1": 0.0
+      }
+    },
+    {
+      "id": "ROJAK-MC-02",
+      "category": "Rojak (BM+ZH)",
+      "ref_text": "Nak satu 咖啡乌 panas kosong ya",
+      "ref_slots": {
+        "base_drink": "Kopi",
+        "temperature": "Hot",
+        "sweetness_level": "Zero Sugar",
+        "milk_type": "None"
+      },
+      "model_a": {
+        "hyp_text": "Nak Satu Kafi, Panas, Kosong, Yeh",
+        "slots": {
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Zero Sugar",
+          "milk_type": "None"
+        },
+        "wer": 0.5,
+        "cer": 0.2609,
+        "slot_f1": 0.75
+      },
+      "model_b": {
+        "hyp_text": "Nak Sato Cafe, Wuh Panis Kousong Ye,",
+        "slots": {},
+        "wer": 0.875,
+        "cer": 0.4783,
+        "slot_f1": 0.0
+      },
+      "model_c": {
+        "hyp_text": "Nak Satu Kafi, panas, kosong, Yeh",
+        "best_track": "ms",
+        "slots": {
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Zero Sugar",
+          "milk_type": "None"
+        },
+        "wer": 0.5,
+        "cer": 0.2609,
+        "slot_f1": 0.75
+      }
+    },
+    {
+      "id": "ROJAK-MC-03",
+      "category": "Rojak (BM+ZH)",
+      "ref_text": "Bagi dua cawan 美禄冰少甜 bungkus",
+      "ref_slots": {
+        "base_drink": "Milo",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar"
+      },
+      "model_a": {
+        "hyp_text": "Baggy Duakwan 美露冰少田",
+        "slots": {
+          "temperature": "Iced"
+        },
+        "wer": 0.6667,
+        "cer": 0.5417,
+        "slot_f1": 0.5
+      },
+      "model_b": {
+        "hyp_text": "Beggy Duak 1 美禄冰少甜，可斯，",
+        "slots": {
+          "base_drink": "Milo",
+          "temperature": "Iced",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.5556,
+        "cer": 0.625,
+        "slot_f1": 1.0
+      },
+      "model_c": {
+        "hyp_text": "Baggy Duak 1 美禄，少甜，Bunkers，",
+        "best_track": "zh",
+        "slots": {
+          "base_drink": "Milo",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.5556,
+        "cer": 0.4583,
+        "slot_f1": 0.8
+      }
+    },
+    {
+      "id": "ROJAK-MC-04",
+      "category": "Rojak (BM+ZH)",
+      "ref_text": "Tolong buatkan satu 奶茶 panas siu dai",
+      "ref_slots": {
+        "base_drink": "Teh",
+        "temperature": "Hot",
+        "sweetness_level": "Less Sugar"
+      },
+      "model_a": {
+        "hyp_text": "Telang Bokkan Sato, Panas, Siu Dai",
+        "slots": {
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.625,
+        "cer": 0.2667,
+        "slot_f1": 0.6667
+      },
+      "model_b": {
+        "hyp_text": "Telang Buaccon Satu奶茶，Nes Siu Dai，",
+        "slots": {
+          "base_drink": "Teh",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.375,
+        "cer": 0.2667,
+        "slot_f1": 0.8
+      },
+      "model_c": {
+        "hyp_text": "Tlong buaccan satto奶茶, panas su day",
+        "best_track": "en",
+        "slots": {
+          "base_drink": "Teh",
+          "temperature": "Hot",
+          "temp_detail": "Hot"
+        },
+        "wer": 0.625,
+        "cer": 0.2333,
+        "slot_f1": 0.6667
+      }
+    },
+    {
+      "id": "ROJAK-MC-05",
+      "category": "Rojak (BM+ZH)",
+      "ref_text": "Saya mahu satu 咖啡 c 冰 kurang manis",
+      "ref_slots": {
+        "base_drink": "Kopi",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar",
+        "milk_type": "Evaporated Milk"
+      },
+      "model_a": {
+        "hyp_text": "Siyama Hussatu Kafesi Binkurang Manez",
+        "slots": {},
+        "wer": 1.0,
+        "cer": 0.4815,
+        "slot_f1": 0.0
+      },
+      "model_b": {
+        "hyp_text": "Sayama who sat to cafe si bingkurong Manez.",
+        "slots": {},
+        "wer": 1.0,
+        "cer": 0.6296,
+        "slot_f1": 0.0
+      },
+      "model_c": {
+        "hyp_text": "沙山马虎萨特咖啡C 并苦劳麦斯，",
+        "best_track": "zh",
+        "slots": {
+          "base_drink": "Kopi"
+        },
+        "wer": 1.0,
+        "cer": 0.8889,
+        "slot_f1": 0.4
+      }
+    },
+    {
+      "id": "ROJAK-EC-01",
+      "category": "Rojak (EN+ZH)",
+      "ref_text": "I want one cup of 鸳鸯 ice with less sweet",
+      "ref_slots": {
+        "base_drink": "Cham",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar"
+      },
+      "model_a": {
+        "hyp_text": "I want one cup of Yuan Yang ice with less sweet",
+        "slots": {
+          "base_drink": "Cham",
+          "temperature": "Iced",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.1818,
+        "cer": 0.2581,
+        "slot_f1": 1.0
+      },
+      "model_b": {
+        "hyp_text": "I want one cup of Yuan Yang ice with less sweet.",
+        "slots": {
+          "base_drink": "Cham",
+          "temperature": "Iced",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.1818,
+        "cer": 0.2581,
+        "slot_f1": 1.0
+      },
+      "model_c": {
+        "hyp_text": "I want one cup of Yuan Yang ice with less sweet",
+        "best_track": "ms",
+        "slots": {
+          "base_drink": "Cham",
+          "temperature": "Iced",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.1818,
+        "cer": 0.2581,
+        "slot_f1": 1.0
+      }
+    },
+    {
+      "id": "ROJAK-EC-02",
+      "category": "Rojak (EN+ZH)",
+      "ref_text": "Give me one cup of 白咖啡 hot tapau",
+      "ref_slots": {
+        "base_drink": "White Coffee",
+        "temperature": "Hot"
+      },
+      "model_a": {
+        "hyp_text": "Give me one cup of by cafe hot pot",
+        "slots": {
+          "temperature": "Hot",
+          "temp_detail": "Hot"
+        },
+        "wer": 0.4,
+        "cer": 0.4,
+        "slot_f1": 0.5
+      },
+      "model_b": {
+        "hyp_text": "Give me one cup of by cafe, hot pot.",
+        "slots": {
+          "temperature": "Hot",
+          "temp_detail": "Hot"
+        },
+        "wer": 0.4,
+        "cer": 0.4,
+        "slot_f1": 0.5
+      },
+      "model_c": {
+        "hyp_text": "给你一杯白咖啡， Hot Pop，",
+        "best_track": "zh",
+        "slots": {
+          "base_drink": "White Coffee",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Normal"
+        },
+        "wer": 0.6,
+        "cer": 0.72,
+        "slot_f1": 0.6667
+      }
+    },
+    {
+      "id": "ROJAK-EC-03",
+      "category": "Rojak (EN+ZH)",
+      "ref_text": "Can I order iced 美禄 no sugar takeaway?",
+      "ref_slots": {
+        "base_drink": "Milo",
+        "temperature": "Iced",
+        "sweetness_level": "Zero Sugar"
+      },
+      "model_a": {
+        "hyp_text": "Can I order iced Milo No Sugar Takeaway?",
+        "slots": {
+          "base_drink": "Milo",
+          "temperature": "Iced",
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.2222,
+        "cer": 0.1333,
+        "slot_f1": 1.0
+      },
+      "model_b": {
+        "hyp_text": "Can I order iced美露 no sugar takeaway?",
+        "slots": {
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.1111,
+        "cer": 0.0333,
+        "slot_f1": 0.5
+      },
+      "model_c": {
+        "hyp_text": "Can I order iced Milo No Sugar Takeaway?",
+        "best_track": "ms",
+        "slots": {
+          "base_drink": "Milo",
+          "temperature": "Iced",
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.2222,
+        "cer": 0.1333,
+        "slot_f1": 1.0
+      }
+    },
+    {
+      "id": "ROJAK-EC-04",
+      "category": "Rojak (EN+ZH)",
+      "ref_text": "One cup of 咖啡 o hot zero sugar please",
+      "ref_slots": {
+        "base_drink": "Kopi",
+        "temperature": "Hot",
+        "sweetness_level": "Zero Sugar",
+        "milk_type": "None"
+      },
+      "model_a": {
+        "hyp_text": "1 CUP OF CAFE, OH HOT ZERO SUGAR PLEASE",
+        "slots": {
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.4,
+        "cer": 0.2759,
+        "slot_f1": 0.5714
+      },
+      "model_b": {
+        "hyp_text": "One cup of cafe, Oh Hot Zero Sugar please.",
+        "slots": {
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.3,
+        "cer": 0.1724,
+        "slot_f1": 0.5714
+      },
+      "model_c": {
+        "hyp_text": "One cup of cafe, Oh Hot Zero Sugar please.",
+        "best_track": "auto",
+        "slots": {
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Zero Sugar"
+        },
+        "wer": 0.3,
+        "cer": 0.1724,
+        "slot_f1": 0.5714
+      }
+    },
+    {
+      "id": "ROJAK-EC-05",
+      "category": "Rojak (EN+ZH)",
+      "ref_text": "Please give me 奶茶 ice less ice",
+      "ref_slots": {
+        "base_drink": "Teh",
+        "temperature": "Iced",
+        "ice_level": "Less Ice"
+      },
+      "model_a": {
+        "hyp_text": "Please give me Naitra Sless Ice",
+        "slots": {
+          "temperature": "Iced"
+        },
+        "wer": 0.5,
+        "cer": 0.25,
+        "slot_f1": 0.5
+      },
+      "model_b": {
+        "hyp_text": "Please give me奶茶S less ice.",
+        "slots": {
+          "base_drink": "Teh",
+          "temperature": "Iced",
+          "ice_level": "Less Ice"
+        },
+        "wer": 0.125,
+        "cer": 0.125,
+        "slot_f1": 1.0
+      },
+      "model_c": {
+        "hyp_text": "Please give me奶茶S less ice.",
+        "best_track": "auto",
+        "slots": {
+          "base_drink": "Teh",
+          "temperature": "Iced",
+          "ice_level": "Less Ice"
+        },
+        "wer": 0.125,
+        "cer": 0.125,
+        "slot_f1": 1.0
+      }
+    },
+    {
+      "id": "TRILING-01",
+      "category": "Trilingual (BM+EN+ZH)",
+      "ref_text": "Boss, can I tapau satu 咖啡 c peng siu dai?",
+      "ref_slots": {
+        "base_drink": "Kopi",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar",
+        "milk_type": "Evaporated Milk"
+      },
+      "model_a": {
+        "hyp_text": "Boss, Kain Ataposatu Caffe C Peng, Ciu Dai",
+        "slots": {
+          "temperature": "Iced"
+        },
+        "wer": 0.6364,
+        "cer": 0.3667,
+        "slot_f1": 0.4
+      },
+      "model_b": {
+        "hyp_text": "Boss, Can I taposato cafe? See Peng Siu Dai.",
+        "slots": {
+          "temperature": "Iced",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.4545,
+        "cer": 0.3333,
+        "slot_f1": 0.6667
+      },
+      "model_c": {
+        "hyp_text": "Boss, Can I taposato cafe? See Peng Siu Dai.",
+        "best_track": "auto",
+        "slots": {
+          "temperature": "Iced",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.4545,
+        "cer": 0.3333,
+        "slot_f1": 0.6667
+      }
+    },
+    {
+      "id": "TRILING-02",
+      "category": "Trilingual (BM+EN+ZH)",
+      "ref_text": "Tolong bagi one cup of 冰美禄 kosong tapau",
+      "ref_slots": {
+        "base_drink": "Milo",
+        "temperature": "Iced",
+        "sweetness_level": "Zero Sugar"
+      },
+      "model_a": {
+        "hyp_text": "Telang Baggi Wan Kop of Bim Merlu, Kosong Tapao",
+        "slots": {
+          "sweetness_level": "Zero Sugar",
+          "milk_type": "None"
+        },
+        "wer": 0.8,
+        "cer": 0.5312,
+        "slot_f1": 0.4
+      },
+      "model_b": {
+        "hyp_text": "Telong Baggy One Cup of Bim美露, Kousong Tapa，",
+        "slots": {},
+        "wer": 0.6,
+        "cer": 0.2812,
+        "slot_f1": 0.0
+      },
+      "model_c": {
+        "hyp_text": "Tolong Baggy 1 Cup of冰美禄, Cossantapau",
+        "best_track": "auto",
+        "slots": {
+          "base_drink": "Milo",
+          "temperature": "Iced"
+        },
+        "wer": 0.4,
+        "cer": 0.25,
+        "slot_f1": 0.8
+      }
+    },
+    {
+      "id": "TRILING-03",
+      "category": "Trilingual (BM+EN+ZH)",
+      "ref_text": "Boss, nak order one teh o 冰 less sugar ya",
+      "ref_slots": {
+        "base_drink": "Teh",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar",
+        "milk_type": "None"
+      },
+      "model_a": {
+        "hyp_text": "Boss, Nak order one teo being less sugar yet",
+        "slots": {
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.4,
+        "cer": 0.2581,
+        "slot_f1": 0.4
+      },
+      "model_b": {
+        "hyp_text": "Boss, NAK Order 1 Tei O Bing Less Sugar Yeh",
+        "slots": {
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.4,
+        "cer": 0.3226,
+        "slot_f1": 0.4
+      },
+      "model_c": {
+        "hyp_text": "Boss, NAK Order 1 Tei O Bing Less Sugar Yeh",
+        "best_track": "auto",
+        "slots": {
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.4,
+        "cer": 0.3226,
+        "slot_f1": 0.4
+      }
+    },
+    {
+      "id": "TRILING-04",
+      "category": "Trilingual (BM+EN+ZH)",
+      "ref_text": "Can you tolong prepare one 鸳鸯 panas normal sugar?",
+      "ref_slots": {
+        "base_drink": "Cham",
+        "temperature": "Hot",
+        "sweetness_level": "Normal"
+      },
+      "model_a": {
+        "hyp_text": "Can you to long prepare one鸳鸯 penis normal sugar?",
+        "slots": {
+          "base_drink": "Cham",
+          "sweetness_level": "Normal"
+        },
+        "wer": 0.3,
+        "cer": 0.05,
+        "slot_f1": 0.8
+      },
+      "model_b": {
+        "hyp_text": "Can you to long prepare one鸳鸯 penis normal sugar?",
+        "slots": {
+          "base_drink": "Cham",
+          "sweetness_level": "Normal"
+        },
+        "wer": 0.3,
+        "cer": 0.05,
+        "slot_f1": 0.8
+      },
+      "model_c": {
+        "hyp_text": "Can you tell on prepare one鸳鸯 panas normal sugar?",
+        "best_track": "en",
+        "slots": {
+          "base_drink": "Cham",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Normal"
+        },
+        "wer": 0.2,
+        "cer": 0.075,
+        "slot_f1": 0.8571
+      }
+    },
+    {
+      "id": "TRILING-05",
+      "category": "Trilingual (BM+EN+ZH)",
+      "ref_text": "Saya want to tapau one cup 咖啡 peng kurang manis",
+      "ref_slots": {
+        "base_drink": "Kopi",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar"
+      },
+      "model_a": {
+        "hyp_text": "Sia Wang Tutapau 1 Cup, Cafe Peng Kulang Maneis",
+        "slots": {
+          "temperature": "Iced"
+        },
+        "wer": 0.8182,
+        "cer": 0.3421,
+        "slot_f1": 0.5
+      },
+      "model_b": {
+        "hyp_text": "Sia want to tapau one cup, Cafe Pengku Rang Menace.",
+        "slots": {},
+        "wer": 0.5455,
+        "cer": 0.2632,
+        "slot_f1": 0.0
+      },
+      "model_c": {
+        "hyp_text": "Sia Wang Tutapau 1 Cup, Cafe Peng Kulang Maneis",
+        "best_track": "ms",
+        "slots": {
+          "temperature": "Iced"
+        },
+        "wer": 0.8182,
+        "cer": 0.3421,
+        "slot_f1": 0.5
+      }
+    },
+    {
+      "id": "SLANG-01",
+      "category": "Colloquial Slang",
+      "ref_text": "Kopi o kosong peng satu bungkus",
+      "ref_slots": {
+        "base_drink": "Kopi",
+        "temperature": "Iced",
+        "sweetness_level": "Zero Sugar",
+        "milk_type": "None"
+      },
+      "model_a": {
+        "hyp_text": "Kopi, Teh C Peng, Satu Bungkus",
+        "slots": {
+          "base_drink": "Kopi",
+          "temperature": "Iced",
+          "sweetness_level": "Normal",
+          "milk_type": "Evaporated Milk"
+        },
+        "wer": 0.3333,
+        "cer": 0.2692,
+        "slot_f1": 0.5
+      },
+      "model_b": {
+        "hyp_text": "Kopi uko song peng satu bungkus.",
+        "slots": {
+          "base_drink": "Kopi",
+          "temperature": "Iced"
+        },
+        "wer": 0.3333,
+        "cer": 0.0385,
+        "slot_f1": 0.6667
+      },
+      "model_c": {
+        "hyp_text": "Kopi, teh c Peng, Satu bungkus",
+        "best_track": "ms",
+        "slots": {
+          "base_drink": "Kopi",
+          "temperature": "Iced",
+          "sweetness_level": "Normal",
+          "milk_type": "Evaporated Milk"
+        },
+        "wer": 0.3333,
+        "cer": 0.2692,
+        "slot_f1": 0.5
+      }
+    },
+    {
+      "id": "SLANG-02",
+      "category": "Colloquial Slang",
+      "ref_text": "Teh ais limau kurang manis tak mau ais banyak",
+      "ref_slots": {
+        "base_drink": "Teh O Limau",
+        "temperature": "Iced",
+        "sweetness_level": "Less Sugar",
+        "ice_level": "Less Ice",
+        "milk_type": "None"
+      },
+      "model_a": {
+        "hyp_text": "Teh ais limau kurang manis tak mau ais banyak",
+        "slots": {
+          "base_drink": "Teh O Limau",
+          "milk_type": "None",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.6
+      },
+      "model_b": {
+        "hyp_text": "Teh ais limau kurang manis tak mau ais banyak.",
+        "slots": {
+          "base_drink": "Teh O Limau",
+          "milk_type": "None",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.6
+      },
+      "model_c": {
+        "hyp_text": "Teh ais limau kurang manis tak mau ais banyak.",
+        "best_track": "auto",
+        "slots": {
+          "base_drink": "Teh O Limau",
+          "milk_type": "None",
+          "temperature": "Hot",
+          "temp_detail": "Hot",
+          "sweetness_level": "Less Sugar"
+        },
+        "wer": 0.0,
+        "cer": 0.0,
+        "slot_f1": 0.6
+      }
+    },
+    {
+      "id": "SLANG-03",
+      "category": "Colloquial Slang",
+      "ref_text": "Cham peng gah dai satu tapau boss",
+      "ref_slots": {
+        "base_drink": "Cham",
+        "temperature": "Iced",
+        "sweetness_level": "Extra Sugar"
+      },
+      "model_a": {
+        "hyp_text": "Pesanan Kampengah Dai Satu Tapao Bus",
+        "slots": {},
+        "wer": 0.7143,
+        "cer": 0.4444,
+        "slot_f1": 0.0
+      },
+      "model_b": {
+        "hyp_text": "Campingkah Dai Satu Tapau Bus?",
+        "slots": {},
+        "wer": 0.5714,
+        "cer": 0.1852,
+        "slot_f1": 0.0
+      },
+      "model_c": {
+        "hyp_text": "Pesanan Kampengah Dai Satu tapau Bus",
+        "best_track": "ms",
+        "slots": {},
+        "wer": 0.5714,
+        "cer": 0.4074,
+        "slot_f1": 0.0
+      }
+    },
+    {
+      "id": "SLANG-04",
+      "category": "Colloquial Slang",
+      "ref_text": "Milo dinosaur satu suam kurang manis ya",
+      "ref_slots": {
+        "base_drink": "Milo",
+        "temperature": "Hot",
+        "sweetness_level": "Less Sugar"
+      },
+      "model_a": {
+        "hyp_text": "Milo Dinosaur 1 Suam Kurang Manisya",
+        "slots": {
+          "base_drink": "Milo",
+          "temperature": "Hot",
+          "temp_detail": "Warm"
+        },
+        "wer": 0.4286,
+        "cer": 0.1212,
+        "slot_f1": 0.6667
+      },
+      "model_b": {
+        "hyp_text": "MiloDinosaur 1 suam kurang manusia.",
+        "slots": {
+          "temperature": "Hot",
+          "temp_detail": "Warm"
+        },
+        "wer": 0.7143,
+        "cer": 0.1818,
+        "slot_f1": 0.4
+      },
+      "model_c": {
+        "hyp_text": "Milo Dinosaur 1 Suam Kurang Manisya",
+        "best_track": "ms",
+        "slots": {
+          "base_drink": "Milo",
+          "temperature": "Hot",
+          "temp_detail": "Warm"
+        },
+        "wer": 0.4286,
+        "cer": 0.1212,
+        "slot_f1": 0.6667
+      }
+    }
+  ]
+}

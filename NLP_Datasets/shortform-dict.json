@@ -2,9 +2,15 @@
   "metadata": {
     "version": "2.0.0",
     "description": "Malaysian Manglish shortform/slang to standard BM/EN dictionary",
-    "total_entries": 210,
-    "categories": ["shortform", "slang", "typo", "abbreviation", "social_media"],
-    "last_updated": "2026-05-28"
+    "total_entries": 262,
+    "categories": [
+      "shortform",
+      "slang",
+      "typo",
+      "abbreviation",
+      "social_media"
+    ],
+    "last_updated": "2026-11-25"
   },
   "shortforms": {
     "nk": "nak",
@@ -87,7 +93,7 @@
     "pg": "pergi",
     "pgi": "pagi",
     "balik": "pulang",
-    "blk": "pulang",
+    "blk": "bilik",
     "blik": "pulang",
     "jap": "sebentar",
     "jep": "sebentar",
@@ -225,11 +231,50 @@
     "uni": "universiti",
     "klas": "kelas",
     "bilik": "bilik",
-    "blk": "bilik",
     "keta": "kereta",
     "moto": "motor",
     "fon": "telefon",
-    "hp": "telefon"
+    "hp": "telefon",
+    "xnak": "tak nak",
+    "taknak": "tak nak",
+    "xmau": "tak mau",
+    "xmo": "tak mau",
+    "takmau": "tak mau",
+    "xbo": "tak boleh",
+    "krg": "kurang",
+    "krng": "kurang",
+    "mns": "manis",
+    "gla": "gula",
+    "ssu": "susu",
+    "pns": "panas",
+    "sjk": "sejuk",
+    "byr": "bayar",
+    "hrg": "harga",
+    "sd": "siu dai",
+    "siudai": "siu dai",
+    "gd": "gah dai",
+    "gadai": "gah dai",
+    "ksg": "kosong",
+    "kp": "kopi",
+    "kpi": "kopi",
+    "wc": "white coffee",
+    "amer": "americano",
+    "tkr": "tukar",
+    "cncl": "cancel",
+    "pls": "please",
+    "plz": "please",
+    "tq": "thanks",
+    "thx": "thanks",
+    "bgi": "bagi",
+    "tpau": "tapau",
+    "bngks": "bungkus",
+    "bkn": "bukan",
+    "oder": "order",
+    "req": "request",
+    "tny": "tanya",
+    "plg": "paling",
+    "lbh": "lebih",
+    "cnfrm": "confirm"
   },
   "slang_positive": {
     "gila": "sangat",
@@ -358,29 +403,134 @@
     "legit": 1.2,
     "literally": 1.3
   },
-  "negators": ["x", "tak", "tidak", "bukan", "xde", "takde", "belum", "jangan", "never", "bkn", "xblh", "takleh", "xleh", "xnk"],
+  "negators": [
+    "x",
+    "tak",
+    "tidak",
+    "bukan",
+    "xde",
+    "takde",
+    "belum",
+    "jangan",
+    "never",
+    "bkn",
+    "xblh",
+    "takleh",
+    "xleh",
+    "xnk"
+  ],
   "particles": {
-    "la": {"function": "emphasis/softener", "formality": "informal"},
-    "lah": {"function": "emphasis/softener", "formality": "informal"},
-    "lor": {"function": "resignation/obvious", "formality": "very_informal"},
-    "leh": {"function": "suggestion/question", "formality": "informal"},
-    "meh": {"function": "doubt/question", "formality": "informal"},
-    "geh": {"function": "emphasis", "formality": "very_informal"},
-    "weh": {"function": "attention/address", "formality": "informal"},
-    "wei": {"function": "attention/address", "formality": "informal"},
-    "eh": {"function": "surprise/attention", "formality": "informal"},
-    "kan": {"function": "confirmation seeking", "formality": "informal"},
-    "kot": {"function": "uncertainty/maybe", "formality": "informal"},
-    "je": {"function": "only/just", "formality": "informal"},
-    "aje": {"function": "only/just", "formality": "very_informal"},
-    "per": {"function": "emphasis", "formality": "very_informal"},
-    "beb": {"function": "address/babe", "formality": "very_informal"},
-    "sis": {"function": "address/sister", "formality": "informal"},
-    "bro": {"function": "address/brother", "formality": "informal"}
+    "la": {
+      "function": "emphasis/softener",
+      "formality": "informal"
+    },
+    "lah": {
+      "function": "emphasis/softener",
+      "formality": "informal"
+    },
+    "lor": {
+      "function": "resignation/obvious",
+      "formality": "very_informal"
+    },
+    "leh": {
+      "function": "suggestion/question",
+      "formality": "informal"
+    },
+    "meh": {
+      "function": "doubt/question",
+      "formality": "informal"
+    },
+    "geh": {
+      "function": "emphasis",
+      "formality": "very_informal"
+    },
+    "weh": {
+      "function": "attention/address",
+      "formality": "informal"
+    },
+    "wei": {
+      "function": "attention/address",
+      "formality": "informal"
+    },
+    "eh": {
+      "function": "surprise/attention",
+      "formality": "informal"
+    },
+    "kan": {
+      "function": "confirmation seeking",
+      "formality": "informal"
+    },
+    "kot": {
+      "function": "uncertainty/maybe",
+      "formality": "informal"
+    },
+    "je": {
+      "function": "only/just",
+      "formality": "informal"
+    },
+    "aje": {
+      "function": "only/just",
+      "formality": "very_informal"
+    },
+    "per": {
+      "function": "emphasis",
+      "formality": "very_informal"
+    },
+    "beb": {
+      "function": "address/babe",
+      "formality": "very_informal"
+    },
+    "sis": {
+      "function": "address/sister",
+      "formality": "informal"
+    },
+    "bro": {
+      "function": "address/brother",
+      "formality": "informal"
+    }
   },
   "emoji_sentiment": {
-    "positive": ["😂", "🤣", "❤️", "😍", "🥰", "😊", "👍", "🔥", "💪", "🙌", "✨", "💯", "🎉", "😎", "🥳"],
-    "negative": ["😢", "😭", "😡", "🤬", "💔", "😤", "😠", "👎", "🙄", "😒", "😞", "😔", "🤮", "💀"],
-    "neutral": ["🤔", "😐", "🫤", "👀", "🤷", "😶", "🙃"]
+    "positive": [
+      "😂",
+      "🤣",
+      "❤️",
+      "😍",
+      "🥰",
+      "😊",
+      "👍",
+      "🔥",
+      "💪",
+      "🙌",
+      "✨",
+      "💯",
+      "🎉",
+      "😎",
+      "🥳"
+    ],
+    "negative": [
+      "😢",
+      "😭",
+      "😡",
+      "🤬",
+      "💔",
+      "😤",
+      "😠",
+      "👎",
+      "🙄",
+      "😒",
+      "😞",
+      "😔",
+      "🤮",
+      "💀"
+    ],
+    "neutral": [
+      "🤔",
+      "😐",
+      "🫤",
+      "👀",
+      "🤷",
+      "😶",
+      "🙃"
+    ]
   }
 }

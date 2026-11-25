@@ -22,6 +22,10 @@ ENV/
 .env
 *.env
 
+# Runtime generated state & audio caches
+NLP_Datasets/learned_slang.json
+tests/audio_benchmark_cache/
+
 # Temporary and cache directories
 .uv_cache/
 uv_cache/

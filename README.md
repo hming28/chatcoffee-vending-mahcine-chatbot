@@ -1,131 +1,66 @@
-# ☕ ChatCoffee: Malaysian Vending Machine Smart Kiosk
-### TAR UMT — BMDS2123 Natural Language Processing (Topic 4 Project)
+# ChatCoffee — Multilingual Malaysian Smart Coffee Kiosk Chatbot
 
-[![Live Demo](https://img.shields.io/badge/🚀%20Live%20Demo-chatcoffee.onrender.com-00C781?style=for-the-badge&logo=render&logoColor=white)](https://chatcoffee.onrender.com/)
-[![Hugging Face Dataset](https://img.shields.io/badge/🤗%20Hugging%20Face-Dataset%20Benchmark-ffcc00?style=for-the-badge)](https://huggingface.co/datasets/HM28/malaysian-coffee-ordering-nlu)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-1.3+-F7931E?style=flat&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey?style=flat)](https://creativecommons.org/licenses/by/4.0/)
+Interactive multi-turn voice and text ordering kiosk for Malaysian Kopitiam beverages supporting **English, Bahasa Melayu, Mandarin (中文), and colloquial Bahasa Rojak / Manglish** (single-cup unmanned dispenser workflow).
 
 ---
 
-> ### 🌐 Try It Live! (No Setup Required)
-> Experience the smart kiosk directly in your browser on desktop or mobile:  
-> 👉 **[https://chatcoffee.onrender.com/](https://chatcoffee.onrender.com/)** 👈
+## Key Features
+
+- **Dual-Script ML Intent Classification (`842` TF-IDF n-gram features)**:
+  - Stratified 80/20 split (`680` train / `170` held-out test) on `NLP_Datasets/chatcoffee_gold_850.csv` (`850` utterances across 4 intents: `order_drink`, `clarify_order`, `modify_order`, `health_query`).
+  - **LinearSVC Benchmark**: `98.24%` Test Accuracy (`0.9812` Macro F1).
+  - **Deployed LogisticRegression** (synced 1:1 across `models/chatcoffee_intent_classifier.joblib`, `models/chatcoffee_model_web.json`, and `index.html`): `97.06%` Test Accuracy (`0.9695` Macro F1).
+- **Dual-Script NER & Kopitiam DST**:
+  - Extracts `base_drink`, `temperature`, `sweetness_level`, `milk_type`, `temp_detail`, `ice_level` across Malay, English, Manglish, and Chinese (`318` flattened normalization rules from `NLP_Datasets/shortform-dict.json` + runtime human-in-the-loop slang teaching via `/api/learn_slang`).
+  - Enforces physical unmanned kiosk rules: single-cup dispenser limit, auto milk-locking (`Teh O Limau`, `Americano`), Zero Sugar / `Kosong` auto-coupling on `Kopi`/`Teh`/`Milo`/`Cham`/`Neslo`, and condensed-milk zero-sugar guard.
+- **Grounded Coffee Knowledge Base (`137` Kopitiam Records)**:
+  - `NLP_Datasets/unified_coffee_kb.csv` covers Hot & Iced variations for `Kopi`, `Kopi O`, `Kopi C`, `Teh Tarik`, `Teh O`, `Teh C`, `Teh O Limau`, `Cham`, `White Coffee`, `Milo`, `Milo O`, `Milo C`, `Neslo`, and `Americano` with verified prices (RM 3.20–RM 6.80), calories, sugar, caffeine, lactose, and gluten metadata.
+- **4-Track Multilingual ASR + Neural TTS**:
+  - `POST /api/transcribe` runs parallel Groq Whisper (`auto`, `ms`, `en`, `zh`) with domain NLU rescoring (`score_asr_candidate`) and phonetic correction (`apply_stt_phonetic_fix_py`), with Web Speech fallback in the browser (`index.html`).
+  - `POST /api/tts` synthesizes neural Malay (`ms-MY-*`), Mandarin (`zh-CN-*`), and Singapore/Malaysian English (`en-SG-*`) speech via Microsoft Edge-TTS.
 
 ---
 
-## 📖 What is ChatCoffee?
-
-**ChatCoffee** is an autonomous, voice-first smart coffee ordering kiosk designed specifically for authentic Malaysian multi-lingual environments (traditional **Kopitiams**, Mamak stalls, and food courts).
-
-In Malaysia, ordering coffee naturally involves **Bahasa Rojak / Manglish** — a seamless mix of English, Bahasa Melayu, and Chinese dialects (Cantonese & Hokkien), accompanied by local abbreviations (`nk`, `xnak`, `brp`, `tapau`) and terms (`Peng`, `Siu Dai`, `Kosong`, `Kau`). 
-
-Conventional single-language bots fail on these mixed expressions. **ChatCoffee solves this with supervised machine learning, slang normalization, and a live nutritional knowledge base.**
-
----
-
-## 🎮 Quick Test: Try These Phrases on the Live Demo!
-
-When you visit **[chatcoffee.onrender.com](https://chatcoffee.onrender.com/)**, try typing or speaking any of these natural Malaysian orders:
-
-| Scenario | What to Say / Type | What ChatCoffee Does |
-| :--- | :--- | :--- |
-| **☕ Authentic Kopitiam Order** | `"Boss, bagi I Kopi O Kosong Peng satu, tapau."` | Identifies Iced Black Coffee, Zero Sugar, Takeaway, and quotes **RM 4.00**. |
-| **🔄 Mid-Order Change (Correction)** | `"Wait boss, actually tukar jadi Teh Tarik panas."` | Seamlessly switches from cold coffee to hot tea and recalculates price. |
-| **🥗 Health & Nutritional Query** | `"Ada drink apa yg zero sugar and low calories ah?"` | Queries the RAG knowledge base and recommends low-calorie, zero-sugar drinks. |
-| **🗣️ Heavy Chat Slang & Shortform** | `"nk order cham peng siu dai bungkus ya boss"` | Normalizes `nk` $\rightarrow$ `nak`, recognizes `siu dai` (less sugar), and packs it. |
-| **❓ Incomplete / Ambiguous Order** | `"Nak minum kopi la boss."` | Proactively asks: *"Mau Panas ke Peng (Ais), dan manis standard ke Siu Dai?"* |
-
----
-
-## ✨ Key Features & Capabilities
-
-- 🗣️ **Dual-Script & Slang Normalization**: Cleans and standardizes 341+ Malaysian abbreviations (`nk` $\rightarrow$ `nak`, `brp` $\rightarrow$ `berapa`) while preserving CJK Chinese characters.
-- 🧠 **Supervised Machine Learning Intent Classifier**: Zero rule-based guessing. Powered by a champion **Logistic Regression with TF-IDF (1-2 N-Gram)** model trained on 850 curated gold instances (100% test accuracy across 4 balanced intents).
-- 🎯 **Dual-Script Named Entity Recognition (NER)**: Extracts beverage type, temperature (Hot/Cold), sweetness level (Kosong, Siu Dai, Normal), milk type (Condensed, Evaporated, None), and dining option (Dine In / Tapau).
-- 🔄 **Stateful Dialogue State Tracking (DST)**: Proactively gathers missing attributes and robustly handles mid-order human corrections (grounded in the ACM Barista Task 7 benchmark).
-- 📊 **Nutritional & Allergen Knowledge Base (SKBR)**: Backed by a verified 144-beverage structured database (`unified_coffee_kb.csv`) with calories, sugar (g), caffeine (mg), allergen safety (lactose, gluten), and live Malaysian Ringgit (RM) pricing (attributed to alvations/kopitiam + MyFCD MOH Malaysia). Deterministic fuzzy retrieval eliminates LLM latency and hallucination.
-- 🎙️ **Voice-First Experience**: Built-in speech recognition and neural speech synthesis for hands-free ordering.
-
----
-
-## 📂 Project Structure
+## Project Structure
 
 ```text
-├── chatcoffee_malaysian_unmanned_smart_kiosk.html     # Interactive Smart Kiosk Web UI (Standalone HTML)
-├── app.py                                              # FastAPI backend server hosting REST API & Dialogue Engine
-├── ChatCoffee_NLP_Model_Training_and_Evaluation.ipynb  # Complete Jupyter Notebook (EDA, Data Cleaning, Model Benchmarks)
-├── requirements.txt                                    # Production Python dependencies
-├── Dockerfile                                          # Docker container deployment configuration
-├── Procfile                                            # Cloud PaaS (Render) deployment entrypoint
-├── docs/                                               # Assignment specifications, rubric, reports & figures
-│   ├── figures/                                        # High-resolution evaluation and architecture figures
-│   └── screenshots/                                    # Test case evidence screenshots
+.
+├── app.py                                           # FastAPI backend server (serves index.html & REST APIs)
+├── index.html                                       # Single-file standalone/connected Kiosk UI + synced JS NLU/DST
+├── ChatCoffee_NLP_Model_Training_and_Evaluation.ipynb # End-to-end training, NER benchmark, Figure 2 & simulation notebook
+├── Dockerfile / Procfile / requirements.txt         # Container & PaaS deployment configuration
+├── scripts/
+│   └── train_and_export.py                          # Unified training + model export + index.html KB/model sync
 ├── models/
-│   ├── chatcoffee_intent_classifier.joblib             # Scikit-Learn serialized model for Python backend
-│   └── chatcoffee_model_web.json                       # Mathematical vector weights for Client Browser JS
+│   ├── chatcoffee_intent_classifier.joblib          # Sklearn TF-IDF + LogisticRegression artifact (842 features)
+│   └── chatcoffee_model_web.json                    # Parity JSON weights + 318 slang rules
 ├── NLP_Datasets/
-│   ├── chatcoffee_gold_850.csv                         # 850-instance Gold NLU Benchmark Dataset
-│   ├── unified_coffee_kb.csv                           # 144-drink Authentic Kopitiam Nutritional Knowledge Base
-│   ├── shortform-dict.json                             # 318 active runtime normalization rules
-│   ├── kopitiam.csv / kopitiam.tsv                     # Kopitiam beverage ontology
-│   └── barista_task7_dialogues.csv                     # Multi-turn dialogue corpus
-├── scripts/                                            # Utility, build, and maintenance scripts
-└── tests/                                              # Backend API and dialogue test suites
+│   ├── chatcoffee_gold_850.csv                      # 850-row x 13-col annotated intent & slot corpus
+│   ├── unified_coffee_kb.csv                        # 137-row x 19-col cleaned Kopitiam knowledge base
+│   └── shortform-dict.json                          # Manglish/BM/EN slang dictionary
+├── docs/                                            # Assignment specs, STT evaluation report & generated figures
+├── hf_dataset/                                      # Hugging Face dataset card
+└── tests/                                           # Pytest API/unit tests + Node.js frontend engine tests
 ```
 
 ---
 
-## 🛠️ Local Development & Quick Start
+## Quick Start
 
-If you want to run ChatCoffee locally on your computer:
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/hming28/chatcoffee-vending-machine-chatbot.git
-cd chatcoffee-vending-machine-chatbot
-```
-
-### 2. Install Dependencies
+### 1. Run Full-Stack Server (FastAPI + Kiosk UI + Voice APIs)
 ```bash
 pip install -r requirements.txt
-```
-
-### 3. Run the Server
-```bash
+# Optional: set GROQ_API_KEY in .env for Groq Whisper voice transcription
 python app.py
 ```
-Open **`http://localhost:8000`** in your browser to start ordering!
+Open `http://localhost:8000` in your browser.
 
-*(Alternatively, you can simply double-click `index.html` to run the standalone client-side kiosk directly in any browser without needing Python!)*
+### 2. Re-Train & Sync Models + Knowledge Base
+```bash
+python scripts/train_and_export.py
+```
 
----
-
-## 🌐 API Endpoints
-
-The FastAPI backend exposes the following RESTful endpoints:
-
-| Method | Endpoint | Description |
-| :---: | :--- | :--- |
-| `GET` | `/` | Serves the interactive Smart Kiosk Web UI |
-| `GET` | `/api/health` | System health check, active model version, and dataset metrics |
-| `POST` | `/api/predict_intent` | Raw ML classification with Softmax class probabilities |
-| `POST` | `/api/chat` | End-to-end multi-turn conversational dialogue turn |
-| `POST` | `/api/tts` | Neural speech synthesis endpoint |
-| `POST` | `/api/transcribe` | Audio file transcription endpoint |
-| `POST` | `/api/learn_slang` | Persistent Human-in-the-Loop slang learning (`learned_slang.json`) |
-| `GET` | `/api/slang` | Inspect active and user-taught slang normalization rules |
-
----
-
-## 📜 Academic Research & Open Datasets
-
-This project is part of the **TAR UMT BMDS2123 Natural Language Processing** curriculum and follows open science principles:
-
-- **Hugging Face Dataset**: [HM28/malaysian-coffee-ordering-nlu](https://huggingface.co/datasets/HM28/malaysian-coffee-ordering-nlu)
-- **Theoretical Benchmarks**:
-  - *Irfan et al. (ACM/IEEE HRI 2020)*: The Barista Robot (Conversational Ordering & Mid-Order Corrections).
-  - *Budzianowski et al. (EMNLP 2018)*: MultiWOZ (Task-Oriented Dialogue Modelling).
-  - *Tan (2018)*: Kopitiam Lexicon Ontology (`alvations/kopitiam`).
-  - *Yusof (2021)*: Malaysia Manglish & Malay NLP Normalization (`ZafranYusof/malaysia-manglish-nlp`).
+### 3. Run Verification Suite (Python + Node.js)
+```bash
+python -m pytest -v
+```
