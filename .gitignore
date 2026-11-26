@@ -38,9 +38,3 @@ temp/
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# Local-only assignment docs, scratch notes, and legacy v1 notebook
-docs/
-hf_dataset/
-PROJECT_MEMORY.md
-ChatCoffee_NLP_Model_Training_and_Evaluation.ipynb

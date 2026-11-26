@@ -8,8 +8,7 @@ import sys
 import pandas as pd
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_v2_1.csv")
-DATASET_PATH = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PATH
+DATASET_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_v1_5_2100.csv")
 
 
 def main() -> int:
@@ -23,8 +22,8 @@ def main() -> int:
 
     # 2. Load with keep_default_na=False so "None" is preserved as string
     df = pd.read_csv(DATASET_PATH, keep_default_na=False)
-    if len(df) < 1000:
-        errors.append(f"[RowCount] Expected >= 1000 rows, got {len(df)}")
+    if len(df) != 2100:
+        errors.append(f"[RowCount] Expected 2100 rows, got {len(df)}")
 
     # 3. JSON slots vs flat columns 100% parity
     slot_cols = ["base_drink", "temperature", "temp_detail", "ice_level", "sweetness_level", "milk_type"]
