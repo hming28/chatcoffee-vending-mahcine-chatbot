@@ -8,28 +8,58 @@ task_categories:
 - text-classification
 - token-classification
 - conversational
-pretty_name: ChatCoffee Malaysian Kopitiam Bilingual Dialogue & Knowledge Base
+pretty_name: Coffee-Rojak Malaysian Kopitiam Multilingual NLU Dataset
 size_categories:
-- n<1K
+- 1K<n<10K
 ---
 
-# ChatCoffee Bilingual Malaysian Kopitiam Dialogue & Knowledge Base
+# Coffee-Rojak — Malaysian Kopitiam Multilingual NLU Dataset
 
-Domain-specific multilingual (Bahasa Melayu, English, Mandarin 中文, and colloquial Bahasa Rojak / Manglish) NLU corpus and Kopitiam beverage knowledge base built for an unmanned smart coffee vending kiosk (**ChatCoffee**).
+A beginner-friendly, multilingual dialogue and slot-filling dataset for **Malaysian Kopitiam beverage ordering**.  
+It covers **English, Bahasa Melayu, Mandarin (中文), and colloquial Bahasa Rojak / Manglish** (for example: *"I want a champeng kurang manis kurang ice"* or *"Nak kopi o peng siu dai"*).
 
-## Dataset Summary
+---
 
-1. **`chatcoffee_gold_850.csv`** (`850` rows × `13` columns)
-   - Annotated customer utterances across 4 task-oriented dialogue intents:
-     - `order_drink` (`250` direct single-shot orders with full slot annotations)
-     - `clarify_order` (`200` ambiguous / multi-turn clarification queries)
-     - `modify_order` (`200` mid-order human corrections)
-     - `health_query` (`200` nutrition, calorie, sugar, caffeine, and lactose/gluten allergen QAs)
-   - Slot columns: `base_drink`, `temperature`, `sweetness_level`, `milk_type`, `query_type`.
+## Quick Start
 
-2. **`unified_coffee_kb.csv`** (`137` rows × `19` columns)
-   - Grounded Malaysian Kopitiam menu knowledge base covering Hot and Iced beverages across `Kopi`, `Kopi O`, `Kopi C`, `Teh Tarik`, `Teh O`, `Teh C`, `Teh O Limau`, `Cham`, `White Coffee`, `Milo`, `Milo O`, `Milo C`, `Neslo`, and `Americano`.
-   - Includes Malaysian market pricing (`price_rm`), nutrition (`calories`, `total_fat_g`, `carbohydrates_g`, `sugars_g`, `caffeine_mg`), and allergen flags (`contains_lactose`, `contains_gluten`, `allergens_summary`).
+### Load with `datasets`
+```python
+from datasets import load_dataset
 
-3. **`shortform-dict.json`**
-   - Bilingual Malaysian Manglish / Rojak shortform & slang normalization lexicon (`318` flattened runtime rules across `shortforms`, `slang_positive`, `slang_negative`).
+ds = load_dataset("csv", data_files="coffee-rojak.csv")
+print(ds["train"][0])
+```
+
+### Load with `pandas`
+```python
+import pandas as pd
+
+df = pd.read_csv("coffee-rojak.csv")
+print(df.shape)        # (2100, 24)
+print(df["intent"].value_counts())
+```
+
+---
+
+## What Is Inside
+
+| File | Size | Description |
+| :--- | :--- | :--- |
+| **`coffee-rojak.csv`** | 2,100 rows × 24 columns | Multilingual customer utterances with intent, slot, language-mix, and dialogue-turn labels |
+| **`unified_coffee_kb.csv`** | 137 rows × 19 columns | Kopitiam beverage reference table (prices in RM, calories, sugar, caffeine, lactose/gluten flags) |
+| **`shortform-dict.json`** | 356 rules | Malaysian Manglish / Rojak shortform and slang normalization dictionary |
+
+---
+
+## Key Columns in `coffee-rojak.csv`
+
+- **Text & Language**: `id`, `category`, `user_utterance`, `language_mix`
+- **Intent**: `intent` (14 annotated intents including `order_drink`, `clarify_order`, `modify_order`, `order_confirm`, `cancel_order`, `health_query`, `price_query`, `out_of_scope`, etc.)
+- **Drink Slots**: `base_drink`, `temperature`, `temp_detail`, `ice_level`, `sweetness_level`, `milk_type`
+- **Dialogue & Metadata**: `slots`, `context`, `old_value`, `new_value`, `query_type`, `turn_id`, `prev_bot_prompt`, `is_coreference`, `shortform_present`, `stt_noise_present`, `ui_action`, `scenario_group`, `split`
+
+---
+
+## License
+
+This dataset is released under the **MIT License**.

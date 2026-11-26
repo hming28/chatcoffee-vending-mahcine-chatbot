@@ -1,23 +1,44 @@
-# ChatCoffee — Multilingual Malaysian Smart Coffee Kiosk Chatbot
+# ChatCoffee — Malaysian Smart Coffee Kiosk Chatbot
 
-Interactive multi-turn voice and text ordering kiosk for Malaysian Kopitiam beverages supporting **English, Bahasa Melayu, Mandarin (中文), and colloquial Bahasa Rojak / Manglish** (single-cup unmanned dispenser workflow).
+An interactive voice and text ordering kiosk for Malaysian Kopitiam drinks.  
+It understands **English, Bahasa Melayu, Mandarin (中文), and Bahasa Rojak / Manglish** (e.g., *"I want a champeng kurang manis kurang ice"* or *"Nak kopi o peng siu dai"*).
 
 ---
 
-## Key Features
+## Quick Start (3 Steps)
 
-- **Dual-Script ML Intent Classification (`842` TF-IDF n-gram features)**:
-  - Stratified 80/20 split (`680` train / `170` held-out test) on `NLP_Datasets/chatcoffee_gold_850.csv` (`850` utterances across 4 intents: `order_drink`, `clarify_order`, `modify_order`, `health_query`).
-  - **LinearSVC Benchmark**: `98.24%` Test Accuracy (`0.9812` Macro F1).
-  - **Deployed LogisticRegression** (synced 1:1 across `models/chatcoffee_intent_classifier.joblib`, `models/chatcoffee_model_web.json`, and `index.html`): `97.06%` Test Accuracy (`0.9695` Macro F1).
-- **Dual-Script NER & Kopitiam DST**:
-  - Extracts `base_drink`, `temperature`, `sweetness_level`, `milk_type`, `temp_detail`, `ice_level` across Malay, English, Manglish, and Chinese (`318` flattened normalization rules from `NLP_Datasets/shortform-dict.json` + runtime human-in-the-loop slang teaching via `/api/learn_slang`).
-  - Enforces physical unmanned kiosk rules: single-cup dispenser limit, auto milk-locking (`Teh O Limau`, `Americano`), Zero Sugar / `Kosong` auto-coupling on `Kopi`/`Teh`/`Milo`/`Cham`/`Neslo`, and condensed-milk zero-sugar guard.
-- **Grounded Coffee Knowledge Base (`137` Kopitiam Records)**:
-  - `NLP_Datasets/unified_coffee_kb.csv` covers Hot & Iced variations for `Kopi`, `Kopi O`, `Kopi C`, `Teh Tarik`, `Teh O`, `Teh C`, `Teh O Limau`, `Cham`, `White Coffee`, `Milo`, `Milo O`, `Milo C`, `Neslo`, and `Americano` with verified prices (RM 3.20–RM 6.80), calories, sugar, caffeine, lactose, and gluten metadata.
-- **4-Track Multilingual ASR + Neural TTS**:
-  - `POST /api/transcribe` runs parallel Groq Whisper (`auto`, `ms`, `en`, `zh`) with domain NLU rescoring (`score_asr_candidate`) and phonetic correction (`apply_stt_phonetic_fix_py`), with Web Speech fallback in the browser (`index.html`).
-  - `POST /api/tts` synthesizes neural Malay (`ms-MY-*`), Mandarin (`zh-CN-*`), and Singapore/Malaysian English (`en-SG-*`) speech via Microsoft Edge-TTS.
+### 1. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Start the server
+```bash
+python app.py
+```
+*(Optional: create a `.env` file with `GROQ_API_KEY=...` to enable Groq Whisper voice transcription.)*
+
+### 3. Open the Kiosk UI
+Visit **`http://localhost:8000`** in your browser and start ordering by text or microphone.
+
+---
+
+## What It Can Do
+
+- **8 Core Conversational Intents**:
+  1. `order_drink` — Order a drink (e.g., *"Nak kopi peng satu"*)
+  2. `clarify_order` — Answer follow-up questions (e.g., *"ais kurang manis"*)
+  3. `modify_order` — Change an existing order (e.g., *"tukar jadi teh c"*)
+  4. `order_confirm` — Confirm and proceed to checkout (e.g., *"ok confirm"*)
+  5. `cancel_order` — Cancel and reset the order (e.g., *"cancel order lah"*)
+  6. `health_query` — Ask about calories, sugar, caffeine, or allergens
+  7. `price_query` — Ask about drink prices (e.g., *"berapa?"*)
+  8. `out_of_scope` — Politely reject unrelated requests
+- **Malaysian Kopitiam Slot Extraction (NER)**:
+  - Extracts `base_drink`, `temperature` (`Hot`/`Iced`), `temp_detail` (`Hot`/`Warm`), `ice_level` (`Less Ice`/`No Ice`), `sweetness_level` (`Zero Sugar`/`Less Sugar`/`Normal`/`Extra Sugar`), and `milk_type`.
+  - Automatically splits concatenated Kopitiam terms (`champeng`, `kopipeng`, `tehc`, `kopio`, `teholimau`) and handles mixed Malay-English ice modifiers (`kurang ice`, `less ais`, `tanpa ice`, `no ais`).
+- **Voice Input & Speech Output**:
+  - Multilingual speech-to-text (`POST /api/transcribe`) and neural text-to-speech (`POST /api/tts`).
 
 ---
 
@@ -25,42 +46,38 @@ Interactive multi-turn voice and text ordering kiosk for Malaysian Kopitiam beve
 
 ```text
 .
-├── app.py                                           # FastAPI backend server (serves index.html & REST APIs)
-├── index.html                                       # Single-file standalone/connected Kiosk UI + synced JS NLU/DST
-├── ChatCoffee_NLP_Model_Training_and_Evaluation.ipynb # End-to-end training, NER benchmark, Figure 2 & simulation notebook
-├── Dockerfile / Procfile / requirements.txt         # Container & PaaS deployment configuration
-├── scripts/
-│   └── train_and_export.py                          # Unified training + model export + index.html KB/model sync
+├── app.py                                           # FastAPI backend & NLU/DST engine
+├── index.html                                       # Kiosk web UI + synced JS NLU engine
+├── ChatCoffee_NLP_Model_Training_and_Evaluation.ipynb # Model training & evaluation notebook
 ├── models/
-│   ├── chatcoffee_intent_classifier.joblib          # Sklearn TF-IDF + LogisticRegression artifact (842 features)
-│   └── chatcoffee_model_web.json                    # Parity JSON weights + 318 slang rules
+│   ├── chatcoffee_intent_classifier.joblib          # Trained TF-IDF + LogisticRegression model
+│   └── chatcoffee_model_web.json                    # Lightweight JSON weights for web/JS parity
 ├── NLP_Datasets/
-│   ├── chatcoffee_gold_850.csv                      # 850-row x 13-col annotated intent & slot corpus
-│   ├── unified_coffee_kb.csv                        # 137-row x 19-col cleaned Kopitiam knowledge base
-│   └── shortform-dict.json                          # Manglish/BM/EN slang dictionary
-├── docs/                                            # Assignment specs, STT evaluation report & generated figures
-├── hf_dataset/                                      # Hugging Face dataset card
-└── tests/                                           # Pytest API/unit tests + Node.js frontend engine tests
+│   ├── coffee-rojak.csv                             # Referenced Kopitiam NLU dataset
+│   ├── unified_coffee_kb.csv                        # Beverage menu, nutrition & allergen table
+│   └── shortform-dict.json                          # Manglish / BM / EN shortform dictionary
+├── scripts/                                         # Dataset & model export utilities
+├── tests/                                           # Pytest + Node.js verification suite
+├── Dockerfile / Procfile / requirements.txt         # Deployment configuration
+└── LICENSE                                          # MIT License
 ```
 
 ---
 
-## Quick Start
+## Run Tests
 
-### 1. Run Full-Stack Server (FastAPI + Kiosk UI + Voice APIs)
 ```bash
-pip install -r requirements.txt
-# Optional: set GROQ_API_KEY in .env for Groq Whisper voice transcription
-python app.py
-```
-Open `http://localhost:8000` in your browser.
-
-### 2. Re-Train & Sync Models + Knowledge Base
-```bash
-python scripts/train_and_export.py
+python -m pytest -q
 ```
 
-### 3. Run Verification Suite (Python + Node.js)
-```bash
-python -m pytest -v
-```
+---
+
+## Dataset Reference
+
+This application uses the third-party **Coffee-Rojak** Malaysian Kopitiam dataset (`NLP_Datasets/coffee-rojak.csv`) together with `NLP_Datasets/unified_coffee_kb.csv` and `NLP_Datasets/shortform-dict.json` for training and evaluation.
+
+---
+
+## License
+
+This project is licensed under the **MIT License** — see [LICENSE](LICENSE) for details.
