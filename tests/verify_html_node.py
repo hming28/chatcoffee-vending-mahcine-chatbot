@@ -42,6 +42,9 @@ assert.strictEqual(detectUtteranceLang('how many calories in kopi o'), 'en');
 assert.strictEqual(detectUtteranceLang('请问美式咖啡多少钱'), 'zh');
 const mlRes = predictIntentML(preprocessRojakText('Boss bagi satu kopi peng'));
 assert.strictEqual(mlRes.intent, 'order_drink');
+assert.strictEqual(extractDrinkSlots('帅哥，我是美式男孩，所以我要一杯冷咖啡少冰').base_drink, 'Kopi', '美式男孩 must not hijack 冷咖啡');
+assert.strictEqual(extractDrinkSlots('bro, kopi o satu da bao, ikat tepi').temperature, 'Iced', 'ikat tepi must set Iced');
+assert.strictEqual(extractDrinkSlots('tak mau panas').temperature, 'Iced', 'tak mau panas must set Iced');
 console.log('verify_html_node PASS:', KOPITIAM_KB.length, 'KB items |', Object.keys(ROJAK_ML_MODEL.vocabulary).length, 'vocab features');
 """
     with tempfile.TemporaryDirectory() as tmpdir:

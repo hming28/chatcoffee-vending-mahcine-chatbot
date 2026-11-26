@@ -316,7 +316,10 @@ def extract_slots(text: str) -> Dict[str, str]:
         slots["base_drink"] = "Neslo"
     elif "美禄" in text or "美祿" in text or re.search(r"\b(?:milo|tak kiu|tut kiu)\b", t_low):
         slots["base_drink"] = "Milo"
-    elif "美式" in text or re.search(r"\bamericano\b", t_low):
+    elif (
+        re.search(r"美式(?:咖啡)?(?=$|[\s，。！？,.!?]|(?:冰|热|温|少|无|正常|打包|大包))|(?:冰|热|温|冻|冷|来|要|点|杯)美式", text) or
+        re.search(r"\bamericano\b", t_low)
+    ):
         slots["base_drink"] = "Americano"
         slots["milk_type"] = "None"
     elif "咖啡" in text or re.search(r"\b(?:kopi|coffee)\b", t_low):
@@ -325,15 +328,21 @@ def extract_slots(text: str) -> Dict[str, str]:
         slots["base_drink"] = "Teh"
 
     # 2. Temperature & Ice/Warmth Modifiers
+    has_hot_negation = bool(
+        re.search(r"\b(?:(?:tak|tidak|x)\s*(?:mau|mahu|nak)|xnak|xmau|bukan|jangan|don't\s+want|do\s+not\s+want|not|no)\s+(?:panas|hot)\b", t_low) or
+        any(w in text for w in ["不要热", "不要热的", "不是热", "别热", "不热"])
+    )
     has_ice_negation = bool(
-        re.search(r"\b(?:bukan\s+(?:ais|ice)|don't\s+want\s+ice|do\s+not\s+want\s+ice|tak\s+mau\s+ais)\b", t_low) or
+        re.search(r"\b(?:bukan\s+(?:ais|ice)|don't\s+want\s+(?:ice|iced)|do\s+not\s+want\s+(?:ice|iced)|tak\s+(?:mau|mahu)\s+ais)\b", t_low) or
         any(w in text for w in ["不要冰", "不要加冰", "不是冰"])
     )
     has_warm_zh = bool(
         re.search(r"温的|温饮|水温|温一点|微温|喝温", text) or
         ("温" in text and not any(w in text for w in ["温度", "室温", "气温", "保温"]))
     )
-    if has_warm_zh or re.search(r"\b(?:suam|warm)\b", t_low):
+    if has_hot_negation:
+        slots["temperature"] = "Iced"
+    elif has_warm_zh or re.search(r"\b(?:suam|warm)\b", t_low):
         slots["temperature"] = "Hot"
         slots["temp_detail"] = "Warm"
     elif "热" in text or "熱" in text or re.search(r"\b(?:panas|hot)\b", t_low):
@@ -344,6 +353,7 @@ def extract_slots(text: str) -> Dict[str, str]:
         slots["temp_detail"] = "Hot"
     elif (
         "冰" in text or "冻" in text or "凍" in text or "冷" in text or
+        re.search(r"\bikat\s+tepi\b", t_low) or
         (re.search(r"\b(?:peng|ping|ice|iced|ais|sejuk|dingin|cold)\b", t_low) and not re.search(r"\b(?:price|pricing)\b", t_low))
     ):
         slots["temperature"] = "Iced"
@@ -557,6 +567,13 @@ def lookup_price_and_nutrition(state: Dict[str, Any]) -> Dict[str, Any]:
         sugars_g = float(state["sugars_g"])
 
     contains_lactose, contains_gluten, allergens_summary = _fallback_allergens(base, milk)
+    default_caffeine = {
+        "Cham": 110.0, "Kopi": 100.0, "Teh": 50.0, "Milo": 25.0,
+        "Neslo": 70.0, "White Coffee": 130.0, "Teh O Limau": 50.0,
+        "Americano": 150.0 if temp == "Iced" else 75.0
+    }
+    caffeine_mg = float(state["caffeine_mg"]) if state.get("caffeine_mg") is not None else default_caffeine.get(base, 80.0)
+    resolved_milk = milk or ("None" if base in ("Teh O Limau", "Americano") else "Condensed Milk")
     display_name = base
     candidate_names = _normalize_cand(base, temp, milk, sweet)
 
@@ -602,12 +619,18 @@ def lookup_price_and_nutrition(state: Dict[str, Any]) -> Dict[str, Any]:
             contains_gluten = str(matched_row["contains_gluten"]).strip().lower() == "true"
         if matched_row.get("allergens_summary"):
             allergens_summary = str(matched_row["allergens_summary"])
+        if matched_row.get("caffeine_mg") not in ("", None):
+            caffeine_mg = float(matched_row["caffeine_mg"])
+        if matched_row.get("milk_type"):
+            resolved_milk = str(matched_row["milk_type"]).strip()
 
     return {
         "display_name": display_name,
         "price_rm": round(price, 2),
         "calories": calories,
         "sugars_g": sugars_g,
+        "caffeine_mg": caffeine_mg,
+        "milk_type": resolved_milk,
         "contains_lactose": contains_lactose,
         "contains_gluten": contains_gluten,
         "allergens_summary": allergens_summary
@@ -620,7 +643,8 @@ _BM_WORDS = frozenset({
     "bayar", "boleh", "sedap", "minum", "cawan", "tambah", "bancuh", "tolong", "bagi",
     "saya", "sihat", "berapa", "apa", "ini", "tu", "ni", "ke", "lah", "ia", "ada", "air",
     "laktosa", "alahan", "alergen", "intoleransi", "tinggi", "rendah", "gemuk", "bikin",
-    "pilihan", "senarai", "cadang", "cadangan", "saran", "sarankan", "sedikit", "minuman"
+    "pilihan", "senarai", "cadang", "cadangan", "saran", "sarankan", "sedikit", "minuman",
+    "tukar", "mana", "ganti", "ubah", "mahu", "suam", "ikat", "tepi"
 })
 _EN_WORDS = frozenset({
     "the", "is", "this", "cup", "drink", "drinks", "high", "calorie", "calories", "fattening", "make",
@@ -795,6 +819,61 @@ def get_no_drink_prompt(query_type: str, lang: str) -> str:
             return "Anda belum pilih sebarang minuman lagi! Sila pilih minuman dahulu, atau saya boleh syorkan pilihan 100% bebas laktosa & bebas gluten seperti Kopi O, Teh O, atau Americano!"
         else:
             return "You haven't selected a drink yet! Please tell me which drink you'd like to check, or I can recommend 100% lactose-free and gluten-free options like Kopi O, Teh O, or Americano!"
+
+
+def get_drink_milk_caffeine_reply(
+    drink_name: str,
+    base_drink: str,
+    milk_type: str,
+    has_lactose: bool,
+    caffeine_mg: float,
+    cal: int,
+    sugar: float,
+    ask_milk: bool,
+    ask_caffeine: bool,
+    lang: str,
+) -> str:
+    caf_val = int(round(caffeine_mg))
+    has_o_opt = base_drink in ("Kopi", "Teh", "Cham", "Milo")
+    if lang == "zh":
+        parts = []
+        if ask_milk:
+            if has_lactose or milk_type not in ("None", ""):
+                opt_hint = f"（如不想加奶可点 {base_drink} O / {base_drink} Kosong）" if has_o_opt else ""
+                parts.append(f"含奶类（默认使用 {milk_type}，含乳糖）{opt_hint}")
+            else:
+                parts.append("不含牛奶/乳糖（纯饮品）")
+        if ask_caffeine:
+            parts.append(f"咖啡因含量约 {caf_val} mg/杯" if caf_val > 0 else "不含咖啡因（0 mg）")
+        if not parts:
+            parts.append(f"约 {cal} kcal，含糖 {sugar:g}g，咖啡因约 {caf_val} mg，奶类：{milk_type}")
+        return f"【{drink_name}】营养查询（来自 KB）：" + "；".join(parts) + "。请问需要为您来一杯吗？"
+    elif lang == "bm":
+        parts = []
+        if ask_milk:
+            if has_lactose or milk_type not in ("None", ""):
+                opt_hint = f" (boleh pilih {base_drink} O / {base_drink} Kosong jika mahu tanpa susu)" if has_o_opt else ""
+                parts.append(f"mengandungi susu ({milk_type}, ada laktosa){opt_hint}")
+            else:
+                parts.append("bebas susu & bebas laktosa")
+        if ask_caffeine:
+            parts.append(f"mengandungi kira-kira {caf_val} mg kafein" if caf_val > 0 else "bebas kafein (0 mg)")
+        if not parts:
+            parts.append(f"kira-kira {cal} kcal, {sugar:g}g gula, {caf_val} mg kafein, susu: {milk_type}")
+        return f"Info 【{drink_name}】 (KB): " + "; ".join(parts) + ". Nak order satu boss?"
+    else:
+        parts = []
+        if ask_milk:
+            if has_lactose or milk_type not in ("None", ""):
+                opt_hint = f" (you can order {base_drink} O / {base_drink} Kosong for dairy-free)" if has_o_opt else ""
+                parts.append(f"contains milk ({milk_type}, dairy/lactose){opt_hint}")
+            else:
+                parts.append("dairy-free & milk-free")
+        if ask_caffeine:
+            parts.append(f"contains approx. {caf_val} mg caffeine" if caf_val > 0 else "caffeine-free (0 mg)")
+        if not parts:
+            parts.append(f"approx. {cal} kcal, {sugar:g}g sugar, {caf_val} mg caffeine, milk: {milk_type}")
+        return f"【{drink_name}】 (from Nutrition KB): " + "; ".join(parts) + ". Would you like to order one?"
 
 
 # -------------------------------------------------------------
@@ -1497,6 +1576,14 @@ def chat_endpoint(req: ChatRequest):
         re.search(r"\b(?:lactose|laktosa|gluten|allergen|allergens|allergi|alergi|alahan|alergik|allergic|allergy|intoleran|intolerant|intolerance|intoleransi|dairy|celiac)\b", t_low) or
         any(w in utterance for w in ["乳糖", "麸质", "过敏", "乳糜泻", "过敏原", "奶制品"])
     )
+    is_milk_inquiry = bool(
+        re.search(r"\b(?:milk|susu|dairy)\b", t_low) or
+        any(w in utterance for w in ["含奶", "有奶", "加奶", "牛奶", "炼奶", "炼乳", "淡奶"])
+    )
+    is_caffeine_inquiry = bool(
+        re.search(r"\b(?:caffeine|kafein|decaf)\b", t_low) or
+        any(w in utterance for w in ["咖啡因", "提神"])
+    )
     is_subjective_calorie = bool(
         re.search(r"\b(?:high\s*calori\w*|is\s+it\s+high|fattening|make\s+me\s+fat|gain\s+weight|tinggi\s+kalori|bikin\s+gemuk|gemuk|kalori\s+tinggi|banyak\s+kalori)\b", t_low) or
         any(w in utterance for w in ["高不高", "胖不胖", "会胖吗", "容易胖吗", "长胖", "发胖", "长肉", "高吗", "会发胖", "会长胖"])
@@ -1511,12 +1598,14 @@ def chat_endpoint(req: ChatRequest):
         any(w in utterance for w in ["健康", "减脂", "减肥", "控糖", "养生"])
     )
     has_health_question = bool(
-        re.search(r"\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang)\b", t_low) or
+        re.search(r"\b(?:what|apa|which|mana|ada|rekomen|recommend|suggest|cadang|does|contain|contains|have)\b", t_low) or
         "?" in utterance or "？" in utterance
     )
 
     is_health_rag = (
         is_allergen_inquiry or
+        is_caffeine_inquiry or
+        (is_milk_inquiry and (has_health_question or pred_intent == "health_query")) or
         is_subjective_calorie or
         is_general_health or
         (is_calorie_inquiry and not was_awaiting_confirm) or
@@ -1560,6 +1649,28 @@ def chat_endpoint(req: ChatRequest):
                     target_temp = state.get("temperature")
                 if not target_sweet:
                     target_sweet = state.get("sweetness_level")
+
+        # Milk / Caffeine specific KB query (e.g., "Does cham contain milk or caffeine?")
+        if (is_milk_inquiry or is_caffeine_inquiry) and target_drink and (is_caffeine_inquiry or not is_allergen_inquiry):
+            temp_state = {"base_drink": target_drink, "milk_type": target_milk, "temperature": target_temp, "sweetness_level": target_sweet}
+            kb_info = lookup_price_and_nutrition(temp_state)
+            dname = kb_info.get("display_name") or target_drink
+            response = get_drink_milk_caffeine_reply(
+                drink_name=dname,
+                base_drink=target_drink,
+                milk_type=kb_info.get("milk_type") or (target_milk or "Condensed Milk"),
+                has_lactose=kb_info["contains_lactose"],
+                caffeine_mg=kb_info["caffeine_mg"],
+                cal=kb_info["calories"],
+                sugar=kb_info["sugars_g"],
+                ask_milk=is_milk_inquiry,
+                ask_caffeine=is_caffeine_inquiry,
+                lang=user_lang,
+            )
+            return {
+                "response": response, "intent": "health_query", "model_intent": pred_intent,
+                "model_name": model_name_str, "tone": detected_tone, "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
+            }
 
         # Allergen inquiry
         if is_allergen_inquiry:
@@ -1622,11 +1733,74 @@ def chat_endpoint(req: ChatRequest):
                 "model_name": model_name_str, "tone": detected_tone, "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
             }
 
-        # General health query
-        response = query_healthy_drinks_from_kb(user_lang)
+        # General health query (if a specific drink was asked, answer with its KB nutrition profile)
+        if target_drink and not is_recommendation_query:
+            temp_state = {"base_drink": target_drink, "milk_type": target_milk, "temperature": target_temp, "sweetness_level": target_sweet}
+            kb_info = lookup_price_and_nutrition(temp_state)
+            dname = kb_info.get("display_name") or target_drink
+            response = get_drink_milk_caffeine_reply(
+                drink_name=dname,
+                base_drink=target_drink,
+                milk_type=kb_info.get("milk_type") or (target_milk or "Condensed Milk"),
+                has_lactose=kb_info["contains_lactose"],
+                caffeine_mg=kb_info["caffeine_mg"],
+                cal=kb_info["calories"],
+                sugar=kb_info["sugars_g"],
+                ask_milk=False,
+                ask_caffeine=False,
+                lang=user_lang,
+            )
+        else:
+            response = query_healthy_drinks_from_kb(user_lang)
         return {
             "response": response, "intent": "health_query", "model_intent": pred_intent,
             "model_name": model_name_str, "tone": detected_tone, "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": extracted_slots, "state": state
+        }
+
+    # 4.1 Lightweight keyword routing for Menu Browse & QR/Cashless Payment QA in 8-intent mode
+    is_menu_browse_kw = (
+        not extracted_slots.get("base_drink") and not state.get("pending_slot") and (
+            bool(re.search(r"\b(?:open|show|view|see)\b.*\bmenu\b|\b(?:drink|drinks)\s+menu\b|\btunjuk\s+menu\b", t_low)) or
+            any(w in utterance for w in ["打开菜单", "看菜单", "饮品菜单", "打开饮品菜单"])
+        )
+    )
+    if is_menu_browse_kw:
+        user_lang = detect_lang(utterance)
+        ui_act, tgt_scr = UI_ACTION_MAP["navigate_menu"]
+        response = (
+            "已为您打开菜单！可选：Kopi、Teh、Cham、White Coffee、Milo、Neslo、Teh O Limau、Americano（支持热饮/温饮/少冰/去冰及甜度定制）。"
+            if user_lang == "zh" else
+            ("Menu dibuka boss! Pilihan: Kopi, Teh, Cham, White Coffee, Milo, Neslo, Teh O Limau & Americano."
+             if user_lang == "bm" else
+             "Menu opened! Available drinks: Kopi, Teh, Cham, White Coffee, Milo, Neslo, Teh O Limau & Americano (Hot/Warm/Iced with custom ice & sugar).")
+        )
+        return {
+            "response": response, "intent": "navigate_menu", "model_intent": pred_intent,
+            "ui_action": ui_act, "target_screen": tgt_scr,
+            "model_name": model_name_str, "tone": detected_tone, "confidence": conf, "probabilities": prob_dict,
+            "clean_text": c_text, "slots": extracted_slots, "state": state
+        }
+
+    is_payment_qa_kw = (
+        not extracted_slots.get("base_drink") and not state.get("pending_slot") and not was_awaiting_confirm and (
+            bool(re.search(r"\b(?:pay|payment|qr(?:\s*code)?|duitnow|tng|ewallet|e-wallet|cashless|paywave|bayar)\b", t_low)) or
+            any(w in utterance for w in ["扫码", "怎么付", "付款方式", "支付方式", "能用qr", "二维码"])
+        )
+    )
+    if is_payment_qa_kw:
+        user_lang = detect_lang(utterance)
+        ui_act, tgt_scr = UI_ACTION_MAP["payment_query"]
+        if user_lang == "zh":
+            response = "ChatCoffee 支持无现金扫码支付：DuitNow QR、Touch 'n Go eWallet、GrabPay、Boost、ShopeePay，以及 Visa/Mastercard PayWave 与 MyDebit 银行卡（暂不收现金）。"
+        elif user_lang == "bm":
+            response = "ChatCoffee menyokong pembayaran tanpa tunai: DuitNow QR, Touch 'n Go eWallet, GrabPay, Boost, ShopeePay serta kad Visa/Mastercard PayWave & MyDebit."
+        else:
+            response = "ChatCoffee is a cashless kiosk supporting DuitNow QR, Touch 'n Go eWallet, GrabPay, Boost, ShopeePay, and Visa/Mastercard PayWave / MyDebit cards."
+        return {
+            "response": response, "intent": "payment_query", "model_intent": pred_intent,
+            "ui_action": ui_act, "target_screen": tgt_scr,
+            "model_name": model_name_str, "tone": detected_tone, "confidence": conf, "probabilities": prob_dict,
+            "clean_text": c_text, "slots": extracted_slots, "state": state
         }
 
     # 4.2 Payment Policy QA & Kiosk UI Navigation Intents (v1.5 14-intent support)
@@ -1706,7 +1880,25 @@ def chat_endpoint(req: ChatRequest):
             "confidence": conf, "probabilities": prob_dict, "clean_text": c_text, "slots": {}, "state": state
         }
 
-    # 5. Merge ALL extracted slots (preserving multi-slot replies during pending_slot clarification)
+    # 5. Guard empty modify_order (e.g. "tukar mana, bro???" or "tukar") before slot merge
+    if pred_intent == "modify_order" and not extracted_slots and state.get("base_drink") and not state.get("pending_slot"):
+        user_lang = detect_lang(utterance)
+        if user_lang == "zh":
+            response = "好的！请问您想修改哪一项呢？（例如更换饮品、改冷/热、调整糖度或奶类）"
+        elif user_lang == "bm":
+            response = "Boleh boss! Nak tukar yang mana satu? (Contoh: tukar air, Panas/Ais, kurang manis, atau susu)"
+        else:
+            response = "Sure boss! What would you like to change—drink, Hot/Iced, sweetness, or milk type?"
+        ui_act, tgt_scr = UI_ACTION_MAP.get(pred_intent, ("update_selection", "detail"))
+        return {
+            "response": response, "intent": pred_intent, "model_intent": pred_intent,
+            "ui_action": ui_act, "target_screen": tgt_scr,
+            "model_name": model_name_str, "tone": detected_tone,
+            "confidence": conf, "probabilities": prob_dict,
+            "clean_text": c_text, "slots": extracted_slots, "state": state
+        }
+
+    # 5.1 Merge ALL extracted slots (preserving multi-slot replies during pending_slot clarification)
     is_drink_changed = bool(extracted_slots.get("base_drink") and extracted_slots["base_drink"] != state.get("base_drink"))
     is_explicit_base_mention = bool(extracted_slots.get("base_drink") and not extracted_slots.get("milk_type"))
     explicit_milk_specified = bool(extracted_slots.get("milk_type"))
@@ -1722,6 +1914,15 @@ def chat_endpoint(req: ChatRequest):
         if not extracted_slots.get("sweetness_level"):
             state["sweetness_level"] = "Zero Sugar" if state.get("base_drink") == "Americano" else "Normal"
 
+    # Normalize temperature-dependent detail fields
+    if state.get("temperature") == "Iced":
+        state["temp_detail"] = None
+        if not state.get("ice_level"):
+            state["ice_level"] = "Normal Ice"
+    elif state.get("temperature") == "Hot":
+        state["temp_detail"] = state.get("temp_detail") or "Hot"
+        state["ice_level"] = None
+
     # Enforce milk & condensed-milk zero-sugar constraints across ALL intents
     if state.get("base_drink") in ("Teh O Limau", "Americano"):
         state["milk_type"] = "None"
@@ -1731,11 +1932,23 @@ def chat_endpoint(req: ChatRequest):
     is_condensed = state.get("milk_type") == "Condensed Milk" or (
         state.get("base_drink") in condensed_drinks and state.get("milk_type") not in ("None", "Evaporated Milk")
     )
+    zero_sugar_adjusted = False
     if state.get("sweetness_level") == "Zero Sugar" and is_condensed:
         if state.get("base_drink") in ("Kopi", "Teh", "Milo", "Cham", "Neslo") and not explicit_milk_specified and "tarik" not in t_low:
             state["milk_type"] = "None"
         else:
             state["sweetness_level"] = "Less Sugar"
+            zero_sugar_adjusted = True
+
+    zero_sugar_notice = ""
+    if zero_sugar_adjusted:
+        user_lang = detect_lang(utterance)
+        if user_lang == "zh":
+            zero_sugar_notice = "（提示：炼奶本身含糖，无法做到完全无糖 Kosong，已为您调整为少糖 Less Sugar。）"
+        elif user_lang == "bm":
+            zero_sugar_notice = " (Nota: Susu pekat mengandungi gula dan tidak boleh Kosong / Tanpa Gula, jadi telah dilaraskan ke Kurang Manis / Less Sugar.)"
+        else:
+            zero_sugar_notice = " (Note: Condensed milk contains sugar, so Zero Sugar / Kosong is not available; adjusted to Less Sugar.)"
 
     # 6. Check missing mandatory slots
     if not state.get("base_drink"):
@@ -1744,7 +1957,13 @@ def chat_endpoint(req: ChatRequest):
         state["status"] = "GATHERING_SLOTS"
     elif not state.get("temperature"):
         drink = state["base_drink"]
-        response = f"您选了 {drink}。请问要热的（Hot）还是加冰（Iced / Peng）呢？" if is_zh else f"Bancuh {drink}. Nak panas atau sejuk / ais (Peng) boss?"
+        if drink in ("Kopi", "Teh", "Cham", "Milo"):
+            if state.get("milk_type") == "None":
+                drink = f"{drink} O"
+            elif state.get("milk_type") == "Evaporated Milk":
+                drink = f"{drink} C"
+        zs_prefix = (zero_sugar_notice.strip() + " ") if zero_sugar_notice else ""
+        response = f"{zs_prefix}您选了 {drink}。请问要热的（Hot）还是加冰（Iced / Peng）呢？" if is_zh else f"{zs_prefix}Bancuh {drink}. Nak panas atau sejuk / ais (Peng) boss?"
         state["pending_slot"] = "temperature"
         state["status"] = "GATHERING_SLOTS"
     elif not state.get("sweetness_level"):
@@ -1758,20 +1977,29 @@ def chat_endpoint(req: ChatRequest):
         state["pending_slot"] = None
         kb_info = lookup_price_and_nutrition(state)
         state["price_rm"] = kb_info["price_rm"]
-        drink_name = f"{state['base_drink']} {state.get('temperature', '')}".strip()
+        temp_val = state.get("temperature", "")
+        if temp_val == "Hot" and state.get("temp_detail") == "Warm":
+            temp_label = "Warm (Suam)"
+        else:
+            temp_label = temp_val
+        drink_name = f"{state['base_drink']} {temp_label}".strip()
         sweet = state.get("sweetness_level", "Normal")
         milk = state.get("milk_type", "Condensed Milk")
+        mod_parts = [sweet, milk]
+        if temp_val == "Iced" and state.get("ice_level") in ("Less Ice", "No Ice"):
+            mod_parts.append(state["ice_level"])
+        mod_str = "，".join(mod_parts) if is_zh else ", ".join(mod_parts)
         if detected_tone == "Urgent":
             response = (
-                f"⚡ 极速模式：{drink_name}（{sweet}，{milk}），RM {kb_info['price_rm']:.2f}。说「确认」立刻出杯！"
+                f"⚡ 极速模式：{drink_name}（{mod_str}），RM {kb_info['price_rm']:.2f}。说「确认」立刻出杯！{zero_sugar_notice}"
                 if is_zh else
-                f"⚡ Express mode boss! {drink_name} ({sweet}, {milk}), RM {kb_info['price_rm']:.2f}. Say Confirm to brew immediately!"
+                f"⚡ Express mode boss! {drink_name} ({mod_str}), RM {kb_info['price_rm']:.2f}. Say Confirm to brew immediately!{zero_sugar_notice}"
             )
         else:
             response = (
-                f"好的！一杯 {drink_name}（{sweet}，{milk}）。总共 RM {kb_info['price_rm']:.2f}。请问确认下单吗？（请回答 OK / Confirm）"
+                f"好的！一杯 {drink_name}（{mod_str}）。总共 RM {kb_info['price_rm']:.2f}。请问确认下单吗？（请回答 OK / Confirm）{zero_sugar_notice}"
                 if is_zh else
-                f"Beres boss! Satu {drink_name} ({sweet}, {milk}). Total RM {kb_info['price_rm']:.2f}. Nak confirm order sekarang? (Jawab Confirm / Boleh)"
+                f"Beres boss! Satu {drink_name} ({mod_str}). Total RM {kb_info['price_rm']:.2f}. Nak confirm order sekarang? (Jawab Confirm / Boleh){zero_sugar_notice}"
             )
 
     ui_act, tgt_scr = UI_ACTION_MAP.get(pred_intent, ("prepare_selection", "detail"))

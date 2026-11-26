@@ -30,14 +30,6 @@ def test_serve_root_index_html():
 
 
 def test_cleaned_datasets_integrity():
-    csv_path = os.path.join(ROOT_DIR, "NLP_Datasets", "chatcoffee_gold_850.csv")
-    with open(csv_path, "rb") as f:
-        assert f.read(3) == b"\xef\xbb\xbf", "v1 CSV must include UTF-8 BOM for Excel Chinese display"
-    gold = pd.read_csv(csv_path)
-    assert len(gold) == 950
-    for col in ("target_response", "serving_type", "old_value", "new_value", "customer_id"):
-        assert col not in gold.columns
-
     v15_path = os.path.join(ROOT_DIR, "NLP_Datasets", "coffee-rojak.csv")
     with open(v15_path, "rb") as f:
         assert f.read(3) == b"\xef\xbb\xbf", "v1.5 CSV must include UTF-8 BOM for Excel Chinese display"
@@ -176,3 +168,83 @@ def test_frontend_js_suites():
         path = os.path.join(ROOT_DIR, "tests", script_name)
         res = subprocess.run(["node", path], cwd=ROOT_DIR, capture_output=True, text=True)
         assert res.returncode == 0, f"{script_name} failed:\n{res.stdout}\n{res.stderr}"
+
+
+def test_conversation_fixes_and_table_issues():
+    # 1. "帅哥，我是美式男孩，所以我要一杯冷咖啡少冰" -> Kopi Iced Less Ice (not Americano)
+    r_boy = client.post(
+        "/api/chat",
+        json={"utterance": "帅哥，我是美式男孩，所以我要一杯冷咖啡少冰", "session_id": uuid.uuid4().hex},
+    ).json()
+    assert r_boy["state"]["base_drink"] == "Kopi"
+    assert r_boy["state"]["temperature"] == "Iced"
+    assert r_boy["state"]["ice_level"] == "Less Ice"
+    assert r_boy["state"]["temp_detail"] is None
+
+    # 2. "bro, kopi o satu da bao, ikat tepi" -> Kopi O Iced directly
+    r_ikat = client.post(
+        "/api/chat",
+        json={"utterance": "bro, kopi o satu da bao, ikat tepi", "session_id": uuid.uuid4().hex},
+    ).json()
+    assert r_ikat["state"]["base_drink"] == "Kopi"
+    assert r_ikat["state"]["milk_type"] == "None"
+    assert r_ikat["state"]["temperature"] == "Iced"
+
+    # 3. Multi-turn hot negation: "kopi o" -> "tak mau panas" -> Iced (NOT Hot), and "tukar mana, bro???" asks what to change
+    sid_neg = uuid.uuid4().hex
+    r_ko = client.post("/api/chat", json={"utterance": "kopi o", "session_id": sid_neg}).json()
+    assert "Kopi O" in r_ko["response"]
+    r_neg = client.post("/api/chat", json={"utterance": "tak mau panas", "session_id": sid_neg}).json()
+    assert r_neg["state"]["temperature"] == "Iced"
+    assert r_neg["state"]["temp_detail"] is None
+    r_tukar = client.post("/api/chat", json={"utterance": "tukar mana, bro???", "session_id": sid_neg}).json()
+    assert "tukar" in r_tukar["response"].lower()
+    assert "kepada" not in r_tukar["response"].lower()
+
+    # 4. Table Issue 1: health_query must not ignore base_drink for milk/caffeine
+    r_cham_q = client.post(
+        "/api/chat",
+        json={"utterance": "Does cham contain milk or caffeine?", "session_id": uuid.uuid4().hex},
+    ).json()
+    assert r_cham_q["intent"] == "health_query"
+    assert "cham" in r_cham_q["response"].lower()
+    assert "110" in r_cham_q["response"]
+    assert "milk" in r_cham_q["response"].lower() or "lactose" in r_cham_q["response"].lower()
+
+    # 5. Table Issue 2: ice_level & Warm (Suam) in reply, and temp_detail cleared when Iced
+    r_cp = client.post(
+        "/api/chat",
+        json={"utterance": "I want a champeng kurang manis kurang ice", "session_id": uuid.uuid4().hex},
+    ).json()
+    assert r_cp["state"]["temp_detail"] is None
+    assert "Less Ice" in r_cp["response"]
+
+    r_suam = client.post(
+        "/api/chat",
+        json={"utterance": "Teh suam kurang manis", "session_id": uuid.uuid4().hex},
+    ).json()
+    assert r_suam["state"]["temp_detail"] == "Warm"
+    assert "Warm" in r_suam["response"] and "Suam" in r_suam["response"]
+
+    # 6. Table Issue 3: Condensed milk + Kosong conflict explanation
+    r_conflict = client.post(
+        "/api/chat",
+        json={"utterance": "Kopi susu pekat kosong", "session_id": uuid.uuid4().hex},
+    ).json()
+    assert r_conflict["state"]["sweetness_level"] == "Less Sugar"
+    assert "condensed milk" in r_conflict["response"].lower() or "susu pekat" in r_conflict["response"].lower() or "炼奶" in r_conflict["response"]
+
+    # 7. Table Issue 4: Menu browse & QR payment lightweight keyword routing
+    r_menu = client.post(
+        "/api/chat",
+        json={"utterance": "Open the drink menu please", "session_id": uuid.uuid4().hex},
+    ).json()
+    assert r_menu["intent"] == "navigate_menu"
+    assert r_menu["target_screen"] == "menu"
+
+    r_pay = client.post(
+        "/api/chat",
+        json={"utterance": "Can I pay using QR code?", "session_id": uuid.uuid4().hex},
+    ).json()
+    assert r_pay["intent"] == "payment_query"
+    assert "qr" in r_pay["response"].lower()

@@ -157,9 +157,9 @@
       .card-pointer::after { display: none; }
     }
     @keyframes pulse-ring {
-      0% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-      70% { transform: scale(1.04); box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
-      100% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+      0% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+      70% { transform: scale(1.04); box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+      100% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
     }
     .mic-recording { animation: pulse-ring 1.3s infinite; }
     .hero-card img { transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
@@ -1045,7 +1045,10 @@
         slots.base_drink = 'Neslo';
       } else if (text.includes('美禄') || text.includes('美祿') || /\b(?:milo|tak kiu|tut kiu)\b/.test(tLow)) {
         slots.base_drink = 'Milo';
-      } else if (text.includes('美式') || /\bamericano\b/.test(tLow)) {
+      } else if (
+        /(?:美式(?:咖啡)?(?=$|[\s，。！？,.!?]|(?:冰|热|温|少|无|正常|打包|大包))|(?:冰|热|温|冻|冷|来|要|点|杯)美式)/.test(text) ||
+        /\bamericano\b/.test(tLow)
+      ) {
         slots.base_drink = 'Americano';
         slots.milk_type = 'None';
       } else if (text.includes('咖啡') || /\b(?:kopi|coffee)\b/.test(tLow)) {
@@ -1055,12 +1058,16 @@
       }
 
       // Temperature Entity + Optional Warm (Suam) & Ice Level (Less Ice / No Ice)
-      const hasIceNegation = /\b(?:bukan\s+(?:ais|ice)|don't\s+want\s+ice|do\s+not\s+want\s+ice|tak\s+mau\s+ais)\b/i.test(tLow) ||
+      const hasHotNegation = /\b(?:(?:tak|tidak|x)\s*(?:mau|mahu|nak)|xnak|xmau|bukan|jangan|don't\s+want|do\s+not\s+want|not|no)\s+(?:panas|hot)\b/i.test(tLow) ||
+        ['不要热', '不要热的', '不是热', '别热', '不热'].some(w => text.includes(w));
+      const hasIceNegation = /\b(?:bukan\s+(?:ais|ice)|don't\s+want\s+(?:ice|iced)|do\s+not\s+want\s+(?:ice|iced)|tak\s+(?:mau|mahu)\s+ais)\b/i.test(tLow) ||
         text.includes('不要冰') || text.includes('不要加冰') || text.includes('不是冰');
 
       const hasWarmZh = /温的|温饮|水温|温一点|微温|喝温/.test(text) ||
         (text.includes('温') && !['温度', '室温', '气温', '保温'].some(w => text.includes(w)));
-      if (hasWarmZh || /\b(?:suam|warm)\b/.test(tLow)) {
+      if (hasHotNegation) {
+        slots.temperature = 'Iced';
+      } else if (hasWarmZh || /\b(?:suam|warm)\b/.test(tLow)) {
         slots.temperature = 'Hot';
         slots.temp_detail = 'Warm';
       } else if (text.includes('热') || text.includes('熱') || /\b(?:panas|hot)\b/.test(tLow)) {
@@ -1071,6 +1078,7 @@
         slots.temp_detail = 'Hot';
       } else if (
         text.includes('冰') || text.includes('冻') || text.includes('凍') || text.includes('冷') ||
+        /\bikat\s+tepi\b/.test(tLow) ||
         (/\b(?:peng|ping|ice|iced|ais|sejuk|dingin|cold)\b/i.test(tLow) && !/\b(?:price|pricing)\b/i.test(tLow))
       ) {
         slots.temperature = 'Iced';
@@ -1583,7 +1591,8 @@
       'cawan', 'tambah', 'bancuh', 'tolong', 'bagi', 'saya', 'sihat', 'berapa', 'brp', 'apa', 'ini', 'sedikit',
       'teh', 'kopi', 'cham', 'air', 'ni', 'tu', 'ke', 'tinggi', 'rendah', 'kalori', 'gemuk', 'bikin',
       'laktosa', 'alahan', 'alergen', 'alergi', 'intoleran', 'intoleransi', 'ada', 'lah', 'ia',
-      'pilihan', 'senarai', 'cadang', 'cadangan', 'saran', 'sarankan', 'minuman'
+      'pilihan', 'senarai', 'cadang', 'cadangan', 'saran', 'sarankan', 'minuman',
+      'tukar', 'mana', 'ganti', 'ubah', 'mahu', 'suam', 'ikat', 'tepi'
     ]);
     const _EN_WORDS_SET = new Set([
       'want', 'order', 'please', 'one', 'two', 'hot', 'iced', 'ice', 'cold', 'warm',
@@ -1850,9 +1859,13 @@
       }
 
       // 3.6 Low-confidence out-of-domain guard (matches FastAPI /api/chat parity)
+      const isMilkInquiry = /\b(?:milk|susu|dairy)\b/i.test(tLow) || ['含奶', '有奶', '加奶', '牛奶', '炼奶', '炼乳', '淡奶'].some(w => utterance.includes(w));
+      const isCaffeineInquiry = /\b(?:caffeine|kafein|decaf)\b/i.test(tLow) || ['咖啡因', '提神'].some(w => utterance.includes(w));
       const isHealthRagTrigger =
         /(?:lactose|laktosa|gluten|allergen|allergens|allergi|alergi|alahan|alergik|allergic|allergy|intoleran|intolerant|intolerance|intoleransi|dairy|celiac)/i.test(tLow) ||
         ['乳糖', '麸质', '过敏', '乳糜泻', '过敏原', '奶制品'].some(w => utterance.includes(w)) ||
+        isCaffeineInquiry ||
+        (isMilkInquiry && (utterance.includes('?') || utterance.includes('？') || intent === 'health_query')) ||
         /\b(?:calorie|calories|kalori|khasiat|nutrisi|kcal|low\s*calori\w*|healthy|health|diet|sihat|rendah\s+kalori)\b/i.test(tLow) ||
         ['卡路里', '热量', '多少卡', '几卡', '含糖量', '低卡', '低热量', '健康', '减脂', '减肥', '控糖', '养生', '高不高', '胖不胖'].some(w => utterance.includes(w));
       // 3.1 ML-driven Cancel / Confirm / Payment / Navigation / Out-of-Scope routing (v1.5 14-intent support)
@@ -1909,6 +1922,32 @@
         }
       }
 
+      // 3.7 Lightweight keyword routing for Menu Browse & QR/Cashless Payment QA in 8-intent mode
+      const isMenuBrowseKw =
+        !slots.base_drink && !engineState.pending_slot && (
+          /\b(?:open|show|view|see)\b.*\bmenu\b|\b(?:drink|drinks)\s+menu\b|\btunjuk\s+menu\b/i.test(tLow) ||
+          ['打开菜单', '看菜单', '饮品菜单', '打开饮品菜单'].some(w => utterance.includes(w))
+        );
+      if (isMenuBrowseKw) {
+        activeScreen = 'menu';
+        engineState.last_intent = 'navigate_menu';
+        if (userLang === 'zh') return '已为您打开饮品菜单！请点击或说出想喝的饮品。';
+        if (userLang === 'bm') return 'Menu dibuka boss! Sila pilih atau beritahu minuman anda.';
+        return 'Menu opened! Tap or tell me which drink you would like.';
+      }
+
+      const isPaymentQaKw =
+        !slots.base_drink && !engineState.pending_slot && engineState.status !== 'AWAITING_CONFIRMATION' && (
+          /\b(?:pay|payment|qr(?:\s*code)?|duitnow|tng|ewallet|e-wallet|cashless|paywave|bayar)\b/i.test(tLow) ||
+          ['扫码', '怎么付', '付款方式', '支付方式', '能用qr', '二维码'].some(w => utterance.includes(w))
+        );
+      if (isPaymentQaKw) {
+        engineState.last_intent = 'payment_query';
+        if (userLang === 'zh') return 'ChatCoffee 支持无现金扫码支付：DuitNow QR、Touch \'n Go eWallet、GrabPay、Boost、ShopeePay，以及 Visa/Mastercard PayWave 与 MyDebit 银行卡。';
+        if (userLang === 'bm') return 'ChatCoffee menyokong pembayaran tanpa tunai: DuitNow QR, Touch \'n Go eWallet, GrabPay, Boost, ShopeePay serta kad Visa/Mastercard PayWave & MyDebit.';
+        return 'ChatCoffee is a cashless kiosk supporting DuitNow QR, Touch \'n Go eWallet, GrabPay, Boost, ShopeePay, and Visa/Mastercard PayWave / MyDebit cards.';
+      }
+
       const isHighConfOos = intent === 'out_of_scope' && (pred.confidence || 0) >= 0.35 && !slots.base_drink;
       if (
         pred.is_ml &&
@@ -1944,6 +1983,8 @@
       const isAwaitingConfirm = engineState.status === 'AWAITING_CONFIRMATION';
       if (
         isAllergenInquiry ||
+        isCaffeineInquiry ||
+        (isMilkInquiry && (isHealthQuestion || intent === 'health_query')) ||
         isSubjectiveCalorie ||
         isGeneralHealth ||
         (isCalorieQuery && !isAwaitingConfirm) ||
@@ -1979,6 +2020,53 @@
             if (!targetMilk) targetMilk = engineState.milk_type;
             if (!targetTemp) targetTemp = engineState.temperature;
             if (!targetSweet) targetSweet = engineState.sweetness_level;
+          }
+        }
+
+        // Branch 0: Milk / Caffeine specific KB query (e.g., "Does cham contain milk or caffeine?")
+        if ((isMilkInquiry || isCaffeineInquiry) && targetDrink && (isCaffeineInquiry || !isAllergenInquiry)) {
+          const match = KOPITIAM_KB.find(item =>
+            (item.name.toLowerCase() === targetDrink.toLowerCase() || item.base.toLowerCase() === targetDrink.toLowerCase()) &&
+            (!targetMilk || item.milk === targetMilk) &&
+            (!targetTemp || item.temp === targetTemp) &&
+            (!targetSweet || item.sweet === targetSweet)
+          ) || KOPITIAM_KB.find(item =>
+            (item.name.toLowerCase() === targetDrink.toLowerCase() || item.base.toLowerCase() === targetDrink.toLowerCase()) &&
+            (!targetMilk || item.milk === targetMilk) &&
+            (!targetTemp || item.temp === targetTemp)
+          ) || KOPITIAM_KB.find(item =>
+            item.name.toLowerCase() === targetDrink.toLowerCase() || item.base.toLowerCase() === targetDrink.toLowerCase()
+          );
+          const dname = match ? match.name : targetDrink;
+          const mType = match ? match.milk : (targetMilk || (['Americano', 'Teh O Limau'].includes(targetDrink) ? 'None' : 'Condensed Milk'));
+          const hasLactose = match ? !!match.contains_lactose : (mType !== 'None');
+          const cafMg = match ? Number(match.caf || 0) : 80;
+          const hasOOpt = ['Kopi', 'Teh', 'Cham', 'Milo'].includes(targetDrink);
+          const parts = [];
+          if (userLang === 'zh') {
+            if (isMilkInquiry) {
+              parts.push((hasLactose || mType !== 'None')
+                ? `含奶类（默认使用 ${mType}，含乳糖${hasOOpt ? `；如不想加奶可点 ${targetDrink} O / ${targetDrink} Kosong` : ''}）`
+                : '不含牛奶/乳糖（纯饮品）');
+            }
+            if (isCaffeineInquiry) parts.push(cafMg > 0 ? `咖啡因含量约 ${cafMg} mg/杯` : '不含咖啡因（0 mg）');
+            return `【${dname}】营养查询（来自 KB）：${parts.join('；')}。请问需要为您来一杯吗？`;
+          } else if (userLang === 'bm') {
+            if (isMilkInquiry) {
+              parts.push((hasLactose || mType !== 'None')
+                ? `mengandungi susu (${mType}, ada laktosa${hasOOpt ? `; boleh pilih ${targetDrink} O / ${targetDrink} Kosong jika mahu tanpa susu` : ''})`
+                : 'bebas susu & bebas laktosa');
+            }
+            if (isCaffeineInquiry) parts.push(cafMg > 0 ? `mengandungi kira-kira ${cafMg} mg kafein` : 'bebas kafein (0 mg)');
+            return `Info 【${dname}】 (KB): ${parts.join('; ')}. Nak order satu boss?`;
+          } else {
+            if (isMilkInquiry) {
+              parts.push((hasLactose || mType !== 'None')
+                ? `contains milk (${mType}, dairy/lactose${hasOOpt ? `; you can order ${targetDrink} O / ${targetDrink} Kosong for dairy-free` : ''})`
+                : 'dairy-free & milk-free');
+            }
+            if (isCaffeineInquiry) parts.push(cafMg > 0 ? `contains approx. ${cafMg} mg caffeine` : 'caffeine-free (0 mg)');
+            return `【${dname}】 (from Nutrition KB): ${parts.join('; ')}. Would you like to order one?`;
           }
         }
 
@@ -2086,6 +2174,13 @@
         }
         if (slots.temp_detail) engineState.temp_detail = slots.temp_detail;
         if (slots.ice_level) engineState.ice_level = slots.ice_level;
+        if (engineState.temperature === 'Iced') {
+          engineState.temp_detail = null;
+          if (!engineState.ice_level) engineState.ice_level = 'Normal Ice';
+        } else if (engineState.temperature === 'Hot') {
+          engineState.temp_detail = engineState.temp_detail || 'Hot';
+          engineState.ice_level = null;
+        }
         engineState.last_intent = 'modify_order';
         computeDrinkPricingAndKb();
         activeScreen = 'detail';
@@ -2132,6 +2227,11 @@
                 const rules = getActiveItemRules();
                 if (!rules.allowZeroSugar) {
                   engineState.sweetness_level = 'Less Sugar';
+                  engineState._zeroSugarNotice = userLang === 'zh'
+                    ? `（提示：${engineState.base_drink} 含炼奶本身带糖，无法做无糖 Kosong，已为您调整为少糖 Less Sugar）`
+                    : (userLang === 'bm'
+                      ? `(Nota: ${engineState.base_drink} dengan susu pekat tak boleh Kosong / Tanpa Gula, telah dilaraskan ke Kurang Manis!)`
+                      : `(Note: ${engineState.base_drink} with condensed milk cannot be Zero Sugar. Adjusted to Less Sugar!)`);
                 }
               }
             }
@@ -2158,8 +2258,14 @@
           }
         } else if (ps === 'temperature') {
           let tempVal = null;
-          if (['ais', 'peng', 'ping', 'ice', 'iced', 'sejuk', 'cold', '冰', '冻', '凍', '冷'].some(w => tLow.includes(w))) {
+          const isHotNeg = /\b(?:(?:tak|tidak|x)\s*(?:mau|mahu|nak)|xnak|xmau|bukan|jangan|don't\s+want|do\s+not\s+want|not|no)\s+(?:panas|hot)\b/i.test(tLow) ||
+            ['不要热', '不要热的', '不是热', '别热', '不热'].some(w => utterance.includes(w));
+          if (isHotNeg || slots.temperature === 'Iced') {
             tempVal = 'Iced';
+            engineState.temp_detail = null;
+          } else if (['ais', 'peng', 'ping', 'ice', 'iced', 'sejuk', 'cold', '冰', '冻', '凍', '冷'].some(w => tLow.includes(w))) {
+            tempVal = 'Iced';
+            engineState.temp_detail = null;
           } else if (['suam', 'warm', '温'].some(w => tLow.includes(w))) {
             tempVal = 'Hot';
             engineState.temp_detail = 'Warm';
@@ -2173,6 +2279,12 @@
           if (tempVal) {
             engineState.temperature = tempVal;
             menuTempTab = tempVal;
+            if (tempVal === 'Iced') {
+              engineState.temp_detail = null;
+              if (!engineState.ice_level) engineState.ice_level = 'Normal Ice';
+            } else {
+              engineState.ice_level = null;
+            }
             engineState.pending_slot = null;
             slotFilled = true;
           }
@@ -2186,19 +2298,28 @@
               if (k === 'temperature') menuTempTab = slots[k];
             }
           }
+          if (engineState.temperature === 'Iced') engineState.temp_detail = null;
           if (engineState.base_drink === 'Teh O Limau' || engineState.base_drink === 'Americano') {
             engineState.milk_type = 'None';
           }
           engineState.last_intent = 'clarify_order';
           engineState.is_ml = false;
+          const zsNotice = engineState._zeroSugarNotice || '';
+          delete engineState._zeroSugarNotice;
           computeDrinkPricingAndKb();
           activeScreen = 'detail';
-          return checkMissingSlotsAndReply('', userLang);
+          return checkMissingSlotsAndReply(zsNotice, userLang);
         }
       }
 
       // 6. Explicit Mid-Order Modification (or Drink Switch)
       if (intent === 'modify_order' || (engineState.base_drink && slots.base_drink && slots.base_drink !== engineState.base_drink)) {
+        const hasAnyModSlot = Boolean(slots.base_drink || slots.temperature || slots.sweetness_level || slots.milk_type || slots.temp_detail || slots.ice_level);
+        if (!hasAnyModSlot) {
+          if (userLang === 'zh') return '好的！请问您想修改哪一项呢？（例如更换饮品、改冷/热、调整糖度或奶类）';
+          if (userLang === 'bm') return 'Boleh boss! Nak tukar yang mana satu? (Contoh: tukar air, Panas/Ais, kurang manis, atau susu)';
+          return 'Sure boss! What would you like to change—drink, Hot/Iced, sweetness, or milk type?';
+        }
         const oldTitle = engineState.base_drink ? getFullDrinkTitle() : (userLang === 'zh' ? '刚才的饮品' : (userLang === 'bm' ? 'minuman tadi' : 'previous drink'));
         const isDrinkChanged = slots.base_drink && slots.base_drink !== engineState.base_drink;
         
@@ -2231,6 +2352,13 @@
         if (slots.temperature) engineState.temperature = slots.temperature;
         if (slots.temp_detail) engineState.temp_detail = slots.temp_detail;
         if (slots.ice_level) engineState.ice_level = slots.ice_level;
+        if (engineState.temperature === 'Iced') {
+          engineState.temp_detail = null;
+          if (!engineState.ice_level) engineState.ice_level = 'Normal Ice';
+        } else if (engineState.temperature === 'Hot') {
+          engineState.temp_detail = engineState.temp_detail || 'Hot';
+          engineState.ice_level = null;
+        }
         if (engineState.base_drink === 'Teh O Limau' || engineState.base_drink === 'Americano') engineState.milk_type = 'None';
         if (engineState.temperature) menuTempTab = engineState.temperature;
 
@@ -2254,7 +2382,15 @@
         if (!engineState.base_drink) {
           return getNlgReply('ask_change_what', {}, userLang);
         }
-        const changeMsg = getNlgReply('change_drink', { oldTitle, newTitle: getFullDrinkTitle() }, userLang) + (zeroSugarNotice ? ' ' + zeroSugarNotice : '');
+        const newTitle = getFullDrinkTitle();
+        let changeMsg = '';
+        if (oldTitle === newTitle && !zeroSugarNotice) {
+          if (userLang === 'zh') changeMsg = `您当前的饮品已经是 ${newTitle} 啦！`;
+          else if (userLang === 'bm') changeMsg = `Pesanan anda sudah pun ${newTitle}!`;
+          else changeMsg = `Your order is already ${newTitle}!`;
+        } else {
+          changeMsg = getNlgReply('change_drink', { oldTitle, newTitle }, userLang) + (zeroSugarNotice ? ' ' + zeroSugarNotice : '');
+        }
         return checkMissingSlotsAndReply(changeMsg, userLang);
       }
 
@@ -2283,6 +2419,13 @@
       for (const k of ['temperature', 'sweetness_level', 'milk_type', 'temp_detail', 'ice_level']) {
         if (slots[k]) engineState[k] = slots[k];
       }
+      if (engineState.temperature === 'Iced') {
+        engineState.temp_detail = null;
+        if (!engineState.ice_level) engineState.ice_level = 'Normal Ice';
+      } else if (engineState.temperature === 'Hot') {
+        engineState.temp_detail = engineState.temp_detail || 'Hot';
+        engineState.ice_level = null;
+      }
       if (['Teh O Limau', 'Americano'].includes(engineState.base_drink)) engineState.milk_type = 'None';
       // Smart Kopitiam Zero Sugar / Kosong Coupling:
       // In Kopitiam culture, 'Kosong' / Zero Sugar on Kopi, Teh, Milo, Cham, or Neslo without explicit milk implies No Milk (O Kosong)
@@ -2292,9 +2435,21 @@
       if (engineState.temperature) menuTempTab = engineState.temperature;
 
       if (engineState.base_drink) {
+        let newOrderNotice = '';
+        const rules = getActiveItemRules();
+        if (!rules.allowZeroSugar && engineState.sweetness_level === 'Zero Sugar') {
+          engineState.sweetness_level = 'Less Sugar';
+          if (userLang === 'zh') {
+            newOrderNotice = `（提示：炼奶本身含糖，无法做到完全无糖 Kosong，已为您调整为少糖 Less Sugar。）`;
+          } else if (userLang === 'bm') {
+            newOrderNotice = `(Nota: Susu pekat mengandungi gula dan tidak boleh Kosong / Tanpa Gula, telah dilaraskan ke Kurang Manis!)`;
+          } else {
+            newOrderNotice = `(Note: Condensed milk contains sugar, so Zero Sugar / Kosong is not available; adjusted to Less Sugar!)`;
+          }
+        }
         computeDrinkPricingAndKb();
         activeScreen = 'detail';
-        return checkMissingSlotsAndReply('', userLang);
+        return checkMissingSlotsAndReply(newOrderNotice, userLang);
       }
 
       if (slots.temperature && !engineState.base_drink) {
@@ -2318,7 +2473,12 @@
       if (!engineState.temperature) {
         engineState.status = 'GATHERING_SLOTS';
         engineState.pending_slot = 'temperature';
-        return `${p}${getNlgReply('ask_temperature', { drink: engineState.base_drink }, lang)}`;
+        let drinkLabel = engineState.base_drink;
+        if (['Kopi', 'Teh', 'Cham', 'Milo'].includes(drinkLabel)) {
+          if (engineState.milk_type === 'None') drinkLabel = `${drinkLabel} O`;
+          else if (engineState.milk_type === 'Evaporated Milk') drinkLabel = `${drinkLabel} C`;
+        }
+        return `${p}${getNlgReply('ask_temperature', { drink: drinkLabel }, lang)}`;
       }
       if (!engineState.sweetness_level && engineState.base_drink === 'Americano') {
         engineState.sweetness_level = 'Zero Sugar';
@@ -2388,6 +2548,7 @@
     // =========================================================================
     let ttsEnabled = true;
     let isRecording = false;
+    let isStartingRecording = false;
     let recognition = null;
     let brewTimer = null;
 
@@ -2473,14 +2634,20 @@
     }
 
     async function startMediaRecorderRecording() {
-      if (isBotSpeaking) return;
+      if (isBotSpeaking || isRecording || isStartingRecording) return;
+      isStartingRecording = true;
       if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
+        isStartingRecording = false;
         fallbackToWebSpeech('当前环境不支持 MediaRecorder 录音上传');
         return;
       }
 
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (!isStartingRecording) {
+          try { stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+          return;
+        }
         mediaStream = stream;
 
         let mimeType = 'audio/webm;codecs=opus';
@@ -2500,8 +2667,15 @@
         };
 
         mediaRecorder.onstart = () => {
+          isStartingRecording = false;
           isRecording = true;
           updateMicUi(handsFreeActive ? 'Auto-Listening (Rojak Whisper)...' : 'Recording (Tap Mic to Send)...');
+        };
+
+        mediaRecorder.onerror = () => {
+          isStartingRecording = false;
+          isRecording = false;
+          updateMicUi('Mic error');
         };
 
         mediaRecorder.onstop = async () => {
@@ -2583,12 +2757,14 @@
 
             let spokenDetected = false;
             let lastVoiceTime = Date.now();
+            const recStartTime = Date.now();
 
             vadInterval = setInterval(() => {
               if (!isRecording || !vadAnalyser) {
                 if (vadInterval) clearInterval(vadInterval);
                 return;
               }
+              if (Date.now() - recStartTime < 400) return;
               vadAnalyser.getByteFrequencyData(dataArr);
               let sum = 0;
               for (let i = 0; i < dataArr.length; i++) sum += dataArr[i];
@@ -2614,11 +2790,13 @@
 
         mediaRecorder.start(250);
       } catch (err) {
+        isStartingRecording = false;
         fallbackToWebSpeech('麦克风权限被拒绝或音频硬件不可用');
       }
     }
 
     function stopListeningSession() {
+      isStartingRecording = false;
       if (listenTimeout) {
         clearTimeout(listenTimeout);
         listenTimeout = null;
@@ -2795,11 +2973,17 @@
           }
         };
 
-        rec.onerror = () => {
+        rec.onerror = (ev) => {
           isRecording = false;
+          const errCode = ev && ev.error ? ev.error : '';
+          if (['not-allowed', 'service-not-allowed', 'audio-capture', 'network'].includes(errCode)) {
+            if (handsFreeActive) setHandsFree(false);
+            updateMicUi(`Mic Error (${errCode})`);
+            return;
+          }
           updateMicUi();
           if (handsFreeActive && !isBotSpeaking) {
-            listenTimeout = setTimeout(startListeningSession, 600);
+            listenTimeout = setTimeout(startListeningSession, 800);
           }
         };
 
@@ -2821,13 +3005,13 @@
       const micBtn = document.getElementById('micBtn');
       const badge = document.getElementById('sttStatusBadge');
       if (isRecording) {
-        micBtn.classList.add('mic-recording', 'bg-red-600');
-        micBtn.classList.remove('bg-[#16A34A]');
+        micBtn.classList.add('mic-recording', 'bg-red-600', 'hover:bg-red-700');
+        micBtn.classList.remove('bg-[#16A34A]', 'hover:bg-[#22C55E]');
         badge.textContent = customMsg || (handsFreeActive ? 'Auto-Listening...' : 'Listening...');
         badge.className = 'text-[11px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-500 font-bold border border-red-500/40 shrink-0';
       } else {
-        micBtn.classList.remove('mic-recording', 'bg-red-600');
-        micBtn.classList.add('bg-[#16A34A]');
+        micBtn.classList.remove('mic-recording', 'bg-red-600', 'hover:bg-red-700');
+        micBtn.classList.add('bg-[#16A34A]', 'hover:bg-[#22C55E]');
         badge.textContent = customMsg || (handsFreeActive ? 'Auto-Talk Waiting' : 'Mic Ready');
         badge.className = 'text-[11px] px-2 py-0.5 rounded-full theme-slot-box theme-text-sec font-medium shrink-0';
       }
@@ -2886,8 +3070,8 @@
           engineState.temperature = menuTempTab;
           engineState.milk_type = item.defaultMilk;
           engineState.sweetness_level = item.defaultSweet;
-          engineState.temp_detail = 'Hot';
-      engineState.ice_level = 'Normal Ice';
+          engineState.temp_detail = menuTempTab === 'Iced' ? null : 'Hot';
+      engineState.ice_level = menuTempTab === 'Iced' ? 'Normal Ice' : null;
           engineState.status = 'AWAITING_CONFIRMATION';
           engineState.pending_slot = null;
           engineState.last_intent = 'touch_select';
@@ -3389,7 +3573,7 @@
       });
 
       document.getElementById('micBtn').addEventListener('click', () => {
-        if (isRecording || handsFreeActive) {
+        if (isRecording || isStartingRecording || handsFreeActive) {
           // If user clicks the mic button to turn it off, also shut down auto-talk completely
           if (handsFreeActive) {
             setHandsFree(false);
