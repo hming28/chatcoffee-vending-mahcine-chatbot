@@ -33,6 +33,7 @@ temp/
 .temp/
 .pytest_cache/
 .ipynb_checkpoints/
+PROJECT_MEMORY.md
 
 # OS generated files
 .DS_Store
