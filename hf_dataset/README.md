@@ -7,7 +7,6 @@ license: mit
 task_categories:
 - text-classification
 - token-classification
-- conversational
 pretty_name: Coffee-Rojak Malaysian Kopitiam Multilingual NLU Dataset
 size_categories:
 - 1K<n<10K
@@ -41,13 +40,11 @@ print(df["intent"].value_counts())
 
 ---
 
-## What Is Inside
+## Dataset File
 
 | File | Size | Description |
 | :--- | :--- | :--- |
 | **`coffee-rojak.csv`** | 2,100 rows × 24 columns | Multilingual customer utterances with intent, slot, language-mix, and dialogue-turn labels |
-| **`unified_coffee_kb.csv`** | 137 rows × 19 columns | Kopitiam beverage reference table (prices in RM, calories, sugar, caffeine, lactose/gluten flags) |
-| **`shortform-dict.json`** | 356 rules | Malaysian Manglish / Rojak shortform and slang normalization dictionary |
 
 ---
 
