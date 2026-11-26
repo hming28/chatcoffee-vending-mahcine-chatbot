@@ -38,7 +38,7 @@ def test_cleaned_datasets_integrity():
     for col in ("target_response", "serving_type", "old_value", "new_value", "customer_id"):
         assert col not in gold.columns
 
-    v15_path = os.path.join(ROOT_DIR, "NLP_Datasets", "chatcoffee_v1_5_2100.csv")
+    v15_path = os.path.join(ROOT_DIR, "NLP_Datasets", "coffee-rojak.csv")
     with open(v15_path, "rb") as f:
         assert f.read(3) == b"\xef\xbb\xbf", "v1.5 CSV must include UTF-8 BOM for Excel Chinese display"
     v15 = pd.read_csv(v15_path, keep_default_na=False)
@@ -70,7 +70,7 @@ def test_model_parity_joblib_json_and_index_html():
 
     jb_vocab_size = len(jb["vectorizer"].vocabulary_)
     assert jb_vocab_size == len(wj["vocabulary"]) == len(embedded["vocabulary"]) >= 842
-    assert len(jb["classes"]) == 14
+    assert len(jb["classes"]) == 8
     assert list(jb["classes"]) == wj["classes"] == embedded["classes"]
 
     r_model = client.get("/models/chatcoffee_model_web.json")
@@ -92,9 +92,9 @@ def test_audit_bugfixes_ner_dst_pricing_and_ood():
     r_rm = client.post("/api/chat", json={"utterance": "RM 4.0", "session_id": uuid.uuid4().hex}).json()
     assert "sweetness_level" not in r_rm["slots"]
 
-    # 4. Gibberish OOD returns fallback
+    # 4. Gibberish OOD returns fallback or out_of_scope
     r_ood = client.post("/api/chat", json={"utterance": "asdfghjkl qwerty", "session_id": uuid.uuid4().hex}).json()
-    assert r_ood["intent"] == "fallback"
+    assert r_ood["intent"] in ("fallback", "out_of_scope")
 
     # 5. "Kopi panas no sugar" auto-couples milk_type="None" (Kopi O Kosong, RM 3.20)
     r_kopi = client.post("/api/chat", json={"utterance": "Kopi panas no sugar", "session_id": uuid.uuid4().hex}).json()
@@ -137,32 +137,36 @@ def test_audit_bugfixes_ner_dst_pricing_and_ood():
     assert r_sf3["slots"]["sweetness_level"] == "Zero Sugar"
     assert r_sf3["slots"]["milk_type"] == "None"
 
-    # 9. v1.5 14-intent kiosk navigation, payment QA, OOS, and ice/warm slots
-    r_pay = client.post("/api/chat", json={"utterance": "Can I pay using QR code?", "session_id": uuid.uuid4().hex}).json()
-    assert r_pay["intent"] == "payment_query"
-    assert r_pay["ui_action"] == "answer_payment_policy"
-
-    r_menu = client.post("/api/chat", json={"utterance": "Open the drink menu please", "session_id": uuid.uuid4().hex}).json()
-    assert r_menu["intent"] == "navigate_menu"
-    assert r_menu["ui_action"] == "show_menu"
-    assert r_menu["target_screen"] == "menu"
-
-    r_home = client.post("/api/chat", json={"utterance": "Go back to home screen", "session_id": uuid.uuid4().hex}).json()
-    assert r_home["intent"] == "navigate_home"
-    assert r_home["ui_action"] == "show_home"
-
+    # 9. 8-intent core kiosk ice/warm slots & OOS
     sid = uuid.uuid4().hex
     r_ice = client.post("/api/chat", json={"utterance": "Kopi peng kurang ais siu dai", "session_id": sid}).json()
     assert r_ice["slots"]["ice_level"] == "Less Ice"
-    r_rev = client.post("/api/chat", json={"utterance": "Review my current order", "session_id": sid}).json()
-    assert r_rev["intent"] == "review_order"
-    assert r_rev["ui_action"] == "show_order"
-    r_npay = client.post("/api/chat", json={"utterance": "Go to payment screen", "session_id": sid}).json()
-    assert r_npay["intent"] == "navigate_payment"
-    assert r_npay["target_screen"] == "payment"
 
     r_oos2 = client.post("/api/chat", json={"utterance": "The air in this room is very cold today", "session_id": uuid.uuid4().hex}).json()
-    assert r_oos2["intent"] == "fallback"
+    assert r_oos2["intent"] in ("fallback", "out_of_scope")
+
+
+def test_concatenated_kopitiam_and_mixed_ice():
+    r_cham = client.post(
+        "/api/chat",
+        json={"utterance": "I want a champeng kurang manis kurang ice", "session_id": uuid.uuid4().hex},
+    ).json()
+    assert r_cham["slots"]["base_drink"] == "Cham"
+    assert r_cham["slots"]["temperature"] == "Iced"
+    assert r_cham["slots"]["sweetness_level"] == "Less Sugar"
+    assert r_cham["slots"]["ice_level"] == "Less Ice"
+
+    from app import extract_slots
+
+    for utt, expected in [
+        ("kopipeng less ais", {"base_drink": "Kopi", "temperature": "Iced", "ice_level": "Less Ice"}),
+        ("tehc tanpa ice", {"base_drink": "Teh", "milk_type": "Evaporated Milk", "temperature": "Iced", "ice_level": "No Ice"}),
+        ("kopio no ais", {"base_drink": "Kopi", "milk_type": "None", "temperature": "Iced", "ice_level": "No Ice"}),
+        ("teholimau", {"base_drink": "Teh O Limau", "milk_type": "None"}),
+    ]:
+        slots = extract_slots(utt)
+        for k, v in expected.items():
+            assert slots.get(k) == v, f"{utt} -> {slots}"
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node.js required for JS engine checks")

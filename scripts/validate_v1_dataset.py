@@ -1,4 +1,4 @@
-"""Automated 7-point QA validator for NLP_Datasets/chatcoffee_v1_5_2100.csv."""
+"""Automated 7-point QA validator for NLP_Datasets/coffee-rojak.csv."""
 
 import json
 import os
@@ -8,7 +8,7 @@ import sys
 import pandas as pd
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATASET_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_v1_5_2100.csv")
+DATASET_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "coffee-rojak.csv")
 
 
 def main() -> int:

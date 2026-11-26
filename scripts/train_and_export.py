@@ -1,7 +1,7 @@
 """Unified training, evaluation, and export pipeline for ChatCoffee NLU (v1.5, 14 intents).
 
 Trains the dual-script (Malay/English/Chinese) TF-IDF (1,2) + LogisticRegression
-classifier on NLP_Datasets/chatcoffee_v1_5_2100.csv using its leak-free scenario_group
+classifier on NLP_Datasets/coffee-rojak.csv using its leak-free scenario_group
 split (train+validation -> test evaluation, with fallback to chatcoffee_gold_850.csv),
 verifies LinearSVC benchmark comparison on the same split, evaluates shortform & STT-noise
 subsets, and exports identical model artifacts to:
@@ -23,7 +23,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-V15_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_v1_5_2100.csv")
+V15_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "coffee-rojak.csv")
 GOLD_PATH = V15_PATH if os.path.exists(V15_PATH) else os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_gold_850.csv")
 KB_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "unified_coffee_kb.csv")
 SHORTFORM_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "shortform-dict.json")

@@ -64,7 +64,7 @@ if not os.path.exists(KB_PATH):
 if not os.path.exists(KB_PATH):
     KB_PATH = os.path.join(BASE_DIR, "data", "unified_coffee_kb.csv")
 
-V15_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_v1_5_2100.csv")
+V15_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "coffee-rojak.csv")
 GOLD_PATH = V15_PATH if os.path.exists(V15_PATH) else os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_gold_850.csv")
 if not os.path.exists(GOLD_PATH):
     GOLD_PATH = os.path.join(BASE_DIR, "chatcoffee_gold_850.csv")
@@ -222,6 +222,17 @@ else:
 # -------------------------------------------------------------
 # 2. Preprocessing, ML Inference & Dual-Script NER
 # -------------------------------------------------------------
+def split_kopitiam_compounds(text: str) -> str:
+    """Split concatenated kopitiam drink/modifier tokens (e.g. champeng -> cham peng, tehc -> teh c)."""
+    if not text:
+        return text
+    t = re.sub(r"\b(teh)(o)?(limau)(peng|ais|ice|panas)?\b", lambda m: " ".join(p for p in m.groups() if p), text)
+    t = re.sub(r"\b(kopi|teh|cham|milo|neslo)(o|c)(peng|ping|ais|ice|iced|panas|suam|hot|kosong)?\b", lambda m: " ".join(p for p in m.groups() if p), t)
+    t = re.sub(r"\b(kopi|teh|cham|milo|neslo)(peng|ping|ais|ice|iced|panas|suam|hot|tarik|kosong)\b", r"\1 \2", t)
+    t = re.sub(r"\b(siu|siew|gah)(dai)\b", r"\1 \2", t)
+    return re.sub(r"\s+", " ", t).strip()
+
+
 def clean_text(text: str) -> str:
     if not isinstance(text, str):
         return ""
@@ -231,6 +242,8 @@ def clean_text(text: str) -> str:
     t = re.sub(r"([a-z0-9])([\u4e00-\u9fff])", r"\1 \2", t)
     # Strip punctuation BEFORE phrase/token expansion so e.g. "brp?" -> "brp" -> "berapa"
     t = re.sub(r"[^\w\s\u4e00-\u9fff]", " ", t)
+    # Split concatenated kopitiam compounds (e.g. champeng, kopipeng, tehc, kopio)
+    t = split_kopitiam_compounds(t)
     # Apply cached multi-word slang phrases first (longest match)
     for pat, repl in _MULTIWORD_SLANG_PATTERNS:
         t = pat.sub(repl, t)
@@ -285,7 +298,7 @@ def predict_intent_ml(c_text: str):
 
 
 def extract_slots(text: str) -> Dict[str, str]:
-    t_low = text.lower()
+    t_low = split_kopitiam_compounds(text.lower())
     slots: Dict[str, str] = {}
 
     # 1. Base Drinks
@@ -335,10 +348,10 @@ def extract_slots(text: str) -> Dict[str, str]:
     ):
         slots["temperature"] = "Iced"
 
-    if "去冰" in text or "走冰" in text or "无冰" in text or re.search(r"\b(?:kosong ais|tanpa ais|no ice|tak nak ais|tidak nak ais|x\s*nak ais|xnak ais)\b", t_low):
+    if "去冰" in text or "走冰" in text or "无冰" in text or re.search(r"\b(?:kosong (?:ais|ice)|tanpa (?:ais|ice)|no (?:ais|ice)|(?:tak|tidak|x)\s*(?:nak|mau)\s*(?:ais|ice)|xnak\s*(?:ais|ice))\b", t_low):
         slots["temperature"] = "Iced"
         slots["ice_level"] = "No Ice"
-    elif "少冰" in text or "微冰" in text or re.search(r"\b(?:kurang ais|less ice|sikit ais|tak nak banyak ais)\b", t_low):
+    elif "少冰" in text or "微冰" in text or re.search(r"\b(?:kurang (?:ais|ice)|less (?:ais|ice)|(?:sikit|sedikit) (?:ais|ice)|tak nak banyak (?:ais|ice))\b", t_low):
         slots["temperature"] = "Iced"
         slots["ice_level"] = "Less Ice"
 

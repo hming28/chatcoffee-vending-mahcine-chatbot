@@ -6,7 +6,7 @@ ui_action, shortform_present, stt_noise_present, scenario_group, split), and add
 1,150 curated, deduplicated Malaysian English / Malay / Chinese / Cantonese / Rojak /
 shortform / STT-noise / fragment-reply / hard-negative utterances across all 14 intents.
 
-Exports NLP_Datasets/chatcoffee_v1_5_2100.csv with UTF-8 BOM (utf-8-sig) for Excel.
+Exports NLP_Datasets/coffee-rojak.csv with UTF-8 BOM (utf-8-sig) for Excel.
 """
 
 import json
@@ -19,7 +19,7 @@ import pandas as pd
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 V1_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_gold_850.csv")
-OUT_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "chatcoffee_v1_5_2100.csv")
+OUT_PATH = os.path.join(BASE_DIR, "NLP_Datasets", "coffee-rojak.csv")
 
 COLUMNS = [
     "id",
