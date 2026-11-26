@@ -34,6 +34,11 @@ temp/
 .pytest_cache/
 .ipynb_checkpoints/
 PROJECT_MEMORY.md
+.agents/
+
+# Local-only dev scripts & test suites (kept locally, excluded from GitHub)
+scripts/
+tests/
 
 # OS generated files
 .DS_Store
